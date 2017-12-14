@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.merakianalytics.datapipelines.AbstractDataStore;
 import com.merakianalytics.datapipelines.iterators.CloseableIterator;
+import com.merakianalytics.datapipelines.iterators.CloseableIterators;
 import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration.ConnectionPoolConfiguration;
 import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration.SSLConfiguration;
 import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration.ServerConfiguration;
@@ -1076,6 +1077,10 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         }
 
         final FindQuery<T, B, I> findQuery = find.apply(query);
+        if(findQuery == null) {
+            return CloseableIterators.empty();
+        }
+
         final AggregateIterable<T> result = collection.aggregate(Lists.newArrayList(
             match(findQuery.getFilter()),
             addFields(new Field<Bson>("__order",

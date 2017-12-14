@@ -9,6 +9,7 @@ import static com.mongodb.client.model.Indexes.compoundIndex;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.merakianalytics.datapipelines.PipelineContext;
@@ -36,9 +38,13 @@ import com.merakianalytics.orianna.datapipeline.common.Utilities;
 import com.merakianalytics.orianna.datapipeline.common.expiration.ExpirationPeriod;
 import com.merakianalytics.orianna.types.common.OriannaException;
 import com.merakianalytics.orianna.types.common.Platform;
+import com.merakianalytics.orianna.types.common.Queue;
+import com.merakianalytics.orianna.types.common.Tier;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMastery;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteryScore;
+import com.merakianalytics.orianna.types.dto.league.LeagueList;
+import com.merakianalytics.orianna.types.dto.league.SummonerPositions;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
@@ -51,6 +57,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ChampionMastery.class.getCanonicalName(), ExpirationPeriod.create(2, TimeUnit.HOURS))
             .put(ChampionMasteries.class.getCanonicalName(), ExpirationPeriod.create(2, TimeUnit.HOURS))
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2, TimeUnit.HOURS))
+            .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(45, TimeUnit.MINUTES))
             .build();
 
         private Map<String, ExpirationPeriod> expirationPeriods = DEFAULT_EXPIRATION_PERIODS;
@@ -71,6 +78,8 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         }
     }
 
+    private static final Set<Tier> LEAGUE_LIST_ENDPOINTS = ImmutableSet.of(Tier.MASTER, Tier.CHALLENGER);
+
     private static Logger LOGGER = LoggerFactory.getLogger(MongoDBDataStore.class);
 
     public MongoDBDataStore() {
@@ -89,6 +98,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ChampionMastery.class, new String[] {"platform", "playerId", "championId"})
             .put(ChampionMasteries.class, new String[] {"platform", "summonerId"})
             .put(ChampionMasteryScore.class, new String[] {"platform", "summonerId"})
+            .put(LeagueList.class, new String[] {"platform", "leagueId"})
             .build();
 
         for(final Class<?> clazz : compositeKeys.keySet()) {
@@ -184,6 +194,31 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         });
     }
 
+    @Get(LeagueList.class)
+    public LeagueList getLeagueList(final Map<String, Object> q, final PipelineContext context) {
+        return findFirst(LeagueList.class, q, (final Map<String, Object> query) -> {
+            final Platform platform = (Platform)query.get("platform");
+            Utilities.checkNotNull(platform, "platform");
+            final Tier tier = (Tier)query.get("tier");
+            final Queue queue = (Queue)query.get("queue");
+            final String leagueId = (String)query.get("leagueId");
+
+            if(leagueId == null) {
+                if(tier == null || queue == null) {
+                    throw new IllegalArgumentException("Query was missing required parameters! Either leagueId or tier and queue  must be included!");
+                } else if(!LEAGUE_LIST_ENDPOINTS.contains(tier) || !Queue.RANKED.contains(queue)) {
+                    return null;
+                }
+            }
+
+            if(leagueId == null) {
+                return and(eq("platform", platform.getTag()), eq("leagueId", leagueId));
+            } else {
+                return and(eq("platform", platform.getTag()), eq("tier", tier.name()), eq("queue", queue.name()));
+            }
+        });
+    }
+
     @SuppressWarnings("unchecked")
     @GetMany(ChampionMasteries.class)
     public CloseableIterator<ChampionMasteries> getManyChampionMasteries(final Map<String, Object> q, final PipelineContext context) {
@@ -271,6 +306,71 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         });
     }
 
+    @SuppressWarnings("unchecked")
+    @GetMany(LeagueList.class)
+    public CloseableIterator<LeagueList> getManyLeagueList(final Map<String, Object> q, final PipelineContext context) {
+        return find(LeagueList.class, q, (final Map<String, Object> query) -> {
+            final Platform platform = (Platform)query.get("platform");
+            Utilities.checkNotNull(platform, "platform");
+            final Tier tier = (Tier)query.get("tier");
+            final Iterable<Queue> queues = (Iterable<Queue>)query.get("queues");
+            final Iterable<String> leagueIds = (Iterable<String>)query.get("leagueIds");
+
+            if(leagueIds == null) {
+                if(tier == null || queues == null) {
+                    throw new IllegalArgumentException("Query was missing required parameters! Either leagueIds or tier and queues must be included!");
+                } else if(!LEAGUE_LIST_ENDPOINTS.contains(tier)) {
+                    return null;
+                }
+            }
+
+            if(leagueIds != null) {
+                final List<BsonString> ids = StreamSupport.stream(leagueIds.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+
+                final Bson filter = and(eq("platform", platform), in("leagueId", ids));
+                return FindQuery.<LeagueList, BsonString, String> builder().filter(filter).order(ids)
+                    .orderingField("leagueId").converter(BsonString::getValue).index(LeagueList::getLeagueId).build();
+            } else {
+                final List<BsonString> ids =
+                    StreamSupport.stream(queues.spliterator(), false).map((final Queue queue) -> new BsonString(queue.name())).collect(Collectors.toList());
+
+                final Bson filter = and(eq("platform", platform), eq("tier", tier.name()), in("queue", ids));
+                return FindQuery.<LeagueList, BsonString, String> builder().filter(filter).order(ids)
+                    .orderingField("queue").converter(BsonString::getValue).index(LeagueList::getQueue).build();
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(SummonerPositions.class)
+    public CloseableIterator<SummonerPositions> getManySummonerPositions(final Map<String, Object> q, final PipelineContext context) {
+        return CloseableIterators
+            .transform(find(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.class, q, (final Map<String, Object> query) -> {
+                final Platform platform = (Platform)query.get("platform");
+                final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
+                Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
+
+                final List<BsonNumber> summonerIds = numbersToBson(iter);
+                final Bson filter = and(eq("platform", platform), in("summonerId", summonerIds));
+
+                return FindQuery.<com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions, BsonNumber, Long> builder().filter(filter)
+                    .order(summonerIds)
+                    .orderingField("summonerId").converter(BsonNumber::longValue)
+                    .index(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions::getSummonerId).build();
+            }), com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions::convert);
+    }
+
+    @Get(SummonerPositions.class)
+    public SummonerPositions getSummonerPositions(final Map<String, Object> q, final PipelineContext context) {
+        return findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.class, q, (final Map<String, Object> query) -> {
+            final Platform platform = (Platform)query.get("platform");
+            final Number summonerId = (Number)query.get("summonerId");
+            Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
+
+            return and(eq("platform", platform.getTag()), eq("summonerId", summonerId));
+        }).convert();
+    }
+
     @Put(ChampionMasteries.class)
     public void putChampionMasteries(final ChampionMasteries m, final PipelineContext context) {
         upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries.class,
@@ -310,6 +410,13 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
                 return and(eq("platform", champions.getPlatform()), eq("freeToPlay", champions.isFreeToPlay()));
             });
         putManyChampionStatus(champs.getChampions(), context);
+    }
+
+    @Put(LeagueList.class)
+    public void putLeagueList(final LeagueList l, final PipelineContext context) {
+        upsert(LeagueList.class, l, (final LeagueList list) -> {
+            return and(eq("platform", list.getPlatform()), eq("leagueId", list.getLeagueId()));
+        });
     }
 
     @PutMany(ChampionMasteries.class)
@@ -352,5 +459,30 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             });
         putManyChampionStatus(Iterables.concat(StreamSupport.stream(champs.spliterator(), false)
             .map(com.merakianalytics.orianna.types.dto.champion.ChampionList::getChampions).collect(Collectors.toList())), context);
+    }
+
+    @PutMany(LeagueList.class)
+    public void putManyLeagueList(final Iterable<LeagueList> l, final PipelineContext context) {
+        upsert(LeagueList.class, l, (final LeagueList list) -> {
+            return and(eq("platform", list.getPlatform()), eq("leagueId", list.getLeagueId()));
+        });
+    }
+
+    @PutMany(SummonerPositions.class)
+    public void putManySummonerPositions(final Iterable<SummonerPositions> m, final PipelineContext context) {
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.class,
+            Iterables.transform(m, com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions::convert),
+            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions positions) -> {
+                return and(eq("platform", positions.getPlatform()), eq("summonerId", positions.getSummonerId()));
+            });
+    }
+
+    @Put(SummonerPositions.class)
+    public void putSummonerPositions(final SummonerPositions p, final PipelineContext context) {
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.class,
+            com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.convert(p),
+            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions positions) -> {
+                return and(eq("platform", positions.getPlatform()), eq("summonerId", positions.getSummonerId()));
+            });
     }
 }

@@ -38,14 +38,10 @@ public class ChampionMasteries {
             throw new OriannaException("Couldn't get ListProxy data field! Report this to the orianna team!", e);
         }
     }
+
     private List<ChampionMastery> data;
     private String platform;
-
     private long summonerId;
-
-    public ChampionMasteries() {
-
-    }
 
     public com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries convert() {
         final com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries masteries =
