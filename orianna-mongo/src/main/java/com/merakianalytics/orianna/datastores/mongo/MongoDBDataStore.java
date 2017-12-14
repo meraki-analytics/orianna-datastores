@@ -8,6 +8,7 @@ import static com.mongodb.client.model.Sorts.ascending;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -1047,7 +1048,9 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         }
     }
 
+    private final Map<Class<?>, String> collectionNames = new ConcurrentHashMap<>();
     private final MongoDatabase db;
+
     private final MongoClient mongo;
 
     public MongoDBDataStore(final Configuration config) {
@@ -1108,7 +1111,20 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
     }
 
     protected <T> MongoCollection<T> getCollection(final Class<T> clazz) {
-        return db.getCollection(clazz.getCanonicalName(), clazz);
+        String name = collectionNames.get(clazz);
+        if(name == null) {
+            synchronized(collectionNames) {
+                name = collectionNames.get(clazz);
+                if(name == null) {
+                    // We just want the last 2 packages and the type name
+                    final String[] parts = clazz.getCanonicalName().split("\\.");
+                    name = parts[parts.length - 3] + "." + parts[parts.length - 2] + "." + parts[parts.length - 1];
+                    collectionNames.put(clazz, name);
+                }
+            }
+        }
+
+        return db.getCollection(name, clazz);
     }
 
     protected List<BsonNumber> numbersToBson(final Iterable<Number> numbers) {

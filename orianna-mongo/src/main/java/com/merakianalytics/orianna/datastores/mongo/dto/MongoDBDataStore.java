@@ -27,6 +27,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.merakianalytics.datapipelines.PipelineContext;
 import com.merakianalytics.datapipelines.iterators.CloseableIterator;
+import com.merakianalytics.datapipelines.iterators.CloseableIterators;
 import com.merakianalytics.datapipelines.sinks.Put;
 import com.merakianalytics.datapipelines.sinks.PutMany;
 import com.merakianalytics.datapipelines.sources.Get;
@@ -128,13 +129,14 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @Get(ChampionMasteries.class)
     public ChampionMasteries getChampionMasteries(final Map<String, Object> q, final PipelineContext context) {
-        return findFirst(ChampionMasteries.class, q, (final Map<String, Object> query) -> {
-            final Platform platform = (Platform)query.get("platform");
-            final Number summonerId = (Number)query.get("summonerId");
-            Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
+        return findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries.class, q,
+            (final Map<String, Object> query) -> {
+                final Platform platform = (Platform)query.get("platform");
+                final Number summonerId = (Number)query.get("summonerId");
+                Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
-            return and(eq("platform", platform.getTag()), eq("summonerId", summonerId));
-        });
+                return and(eq("platform", platform.getTag()), eq("summonerId", summonerId));
+            }).convert();
     }
 
     @Get(ChampionMastery.class)
@@ -185,17 +187,20 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @SuppressWarnings("unchecked")
     @GetMany(ChampionMasteries.class)
     public CloseableIterator<ChampionMasteries> getManyChampionMasteries(final Map<String, Object> q, final PipelineContext context) {
-        return find(ChampionMasteries.class, q, (final Map<String, Object> query) -> {
-            final Platform platform = (Platform)query.get("platform");
-            final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
-            Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
+        return CloseableIterators.transform(
+            find(com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries.class, q, (final Map<String, Object> query) -> {
+                final Platform platform = (Platform)query.get("platform");
+                final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
+                Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
 
-            final List<BsonNumber> summonerIds = numbersToBson(iter);
-            final Bson filter = and(eq("platform", platform), in("summonerId", summonerIds));
+                final List<BsonNumber> summonerIds = numbersToBson(iter);
+                final Bson filter = and(eq("platform", platform), in("summonerId", summonerIds));
 
-            return FindQuery.<ChampionMasteries, BsonNumber, Long> builder().filter(filter).order(summonerIds)
-                .orderingField("summonerId").converter(BsonNumber::longValue).index(ChampionMasteries::getSummonerId).build();
-        });
+                return FindQuery.<com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries, BsonNumber, Long> builder()
+                    .filter(filter).order(summonerIds)
+                    .orderingField("summonerId").converter(BsonNumber::longValue)
+                    .index(com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries::getSummonerId).build();
+            }), com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries::convert);
     }
 
     @SuppressWarnings("unchecked")
@@ -268,9 +273,11 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @Put(ChampionMasteries.class)
     public void putChampionMasteries(final ChampionMasteries m, final PipelineContext context) {
-        upsert(ChampionMasteries.class, m, (final ChampionMasteries masteries) -> {
-            return and(eq("platform", masteries.getPlatform()), eq("summonerId", masteries.getSummonerId()));
-        });
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries.class,
+            com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries.convert(m),
+            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries masteries) -> {
+                return and(eq("platform", masteries.getPlatform()), eq("summonerId", masteries.getSummonerId()));
+            });
         putManyChampionMastery(m, context);
     }
 
@@ -307,9 +314,11 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @PutMany(ChampionMasteries.class)
     public void putManyChampionMasteries(final Iterable<ChampionMasteries> m, final PipelineContext context) {
-        upsert(ChampionMasteries.class, m, (final ChampionMasteries masteries) -> {
-            return and(eq("platform", masteries.getPlatform()), eq("summonerId", masteries.getSummonerId()));
-        });
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries.class,
+            Iterables.transform(m, com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries::convert),
+            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries masteries) -> {
+                return and(eq("platform", masteries.getPlatform()), eq("summonerId", masteries.getSummonerId()));
+            });
         putManyChampionMastery(Iterables.concat(m), context);
     }
 
