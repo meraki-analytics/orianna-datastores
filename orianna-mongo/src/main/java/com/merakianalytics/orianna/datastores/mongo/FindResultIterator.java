@@ -15,14 +15,15 @@ import com.mongodb.CursorType;
 import com.mongodb.async.AsyncBatchCursor;
 import com.mongodb.async.client.FindIterable;
 
-public class SynchronizingCloseableIterator<T> implements CloseableIterator<T> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizingCloseableIterator.class);
+public class FindResultIterator<T> implements CloseableIterator<T> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FindResultIterator.class);
     private final AsyncBatchCursor<T> cursor;
+    private boolean empty = false;
     private final BlockingQueue<T> queue = new LinkedBlockingQueue<>();
 
-    public SynchronizingCloseableIterator(final FindIterable<T> find) {
+    public FindResultIterator(final FindIterable<T> result) {
         final CompletableFuture<AsyncBatchCursor<T>> future = new CompletableFuture<>();
-        find.noCursorTimeout(true).cursorType(CursorType.NonTailable).batchCursor((final AsyncBatchCursor<T> cursor, final Throwable exception) -> {
+        result.noCursorTimeout(true).cursorType(CursorType.NonTailable).batchCursor((final AsyncBatchCursor<T> cursor, final Throwable exception) -> {
             if(exception != null) {
                 future.completeExceptionally(exception);
             } else {
@@ -46,6 +47,9 @@ public class SynchronizingCloseableIterator<T> implements CloseableIterator<T> {
 
     @Override
     public boolean hasNext() {
+        if(empty) {
+            return false;
+        }
         if(!queue.isEmpty()) {
             return true;
         }
@@ -61,7 +65,9 @@ public class SynchronizingCloseableIterator<T> implements CloseableIterator<T> {
 
         try {
             final List<T> results = future.get();
-            if(results == null) {
+            if(results == null || results.isEmpty()) {
+                empty = true;
+                close();
                 return false;
             }
 

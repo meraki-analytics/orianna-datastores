@@ -1,17 +1,37 @@
 package com.merakianalytics.orianna.datastores.mongo;
 
+import static com.mongodb.client.model.Aggregates.addFields;
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Aggregates.sort;
+import static com.mongodb.client.model.Sorts.ascending;
+
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
+import org.bson.BsonArray;
+import org.bson.BsonDocument;
+import org.bson.BsonDouble;
+import org.bson.BsonInt32;
+import org.bson.BsonInt64;
+import org.bson.BsonNumber;
+import org.bson.BsonString;
+import org.bson.BsonValue;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.AddUpdatedTimestamp;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.merakianalytics.datapipelines.AbstractDataStore;
 import com.merakianalytics.datapipelines.iterators.CloseableIterator;
 import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration.ConnectionPoolConfiguration;
@@ -24,12 +44,20 @@ import com.mongodb.MongoCompressor;
 import com.mongodb.MongoCredential;
 import com.mongodb.ReadConcern;
 import com.mongodb.WriteConcern;
+import com.mongodb.async.client.AggregateIterable;
 import com.mongodb.async.client.FindIterable;
 import com.mongodb.async.client.MongoClient;
 import com.mongodb.async.client.MongoClientSettings;
 import com.mongodb.async.client.MongoClients;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
+import com.mongodb.bulk.BulkWriteResult;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.Field;
+import com.mongodb.client.model.ReplaceOneModel;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.WriteModel;
+import com.mongodb.client.result.UpdateResult;
 import com.mongodb.connection.ClusterSettings;
 import com.mongodb.connection.ConnectionPoolSettings;
 import com.mongodb.connection.ServerSettings;
@@ -605,7 +633,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         /**
          * @return the ssl
          */
-        public SSLConfiguration getSSL() {
+        public SSLConfiguration getSsl() {
             return ssl;
         }
 
@@ -723,7 +751,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
          * @param ssl
          *        the ssl to set
          */
-        public void setSSL(final SSLConfiguration ssl) {
+        public void setSsl(final SSLConfiguration ssl) {
             this.ssl = ssl;
         }
 
@@ -744,13 +772,123 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         }
     }
 
+    protected static class FindQuery<T, B extends BsonValue, I> {
+        public static class Builder<T, B extends BsonValue, I> {
+            private Function<B, I> converter;
+            private Bson filter;
+            private Function<T, I> index;
+            private List<B> order;
+            private String orderingField;
+
+            private Builder() {}
+
+            public FindQuery<T, B, I> build() {
+                if(filter == null || order == null || orderingField == null || index == null || converter == null) {
+                    throw new IllegalStateException("Must set filter, order, orderingField, index, and converter!");
+                }
+
+                final FindQuery<T, B, I> query = new FindQuery<>();
+                query.filter = filter;
+                query.order = order;
+                query.orderingField = orderingField;
+                query.converter = converter;
+                query.index = index;
+                return query;
+            }
+
+            public Builder<T, B, I> converter(final Function<B, I> converter) {
+                this.converter = converter;
+                return this;
+            }
+
+            public Builder<T, B, I> filter(final Bson filter) {
+                this.filter = filter;
+                return this;
+            }
+
+            public Builder<T, B, I> index(final Function<T, I> index) {
+                this.index = index;
+                return this;
+            }
+
+            public Builder<T, B, I> order(final List<B> order) {
+                this.order = order;
+                return this;
+            }
+
+            public Builder<T, B, I> orderingField(final String orderingField) {
+                this.orderingField = orderingField;
+                return this;
+            }
+        }
+
+        public static <T, B extends BsonValue, I> Builder<T, B, I> builder() {
+            return new Builder<>();
+        }
+
+        private Function<B, I> converter;
+        private Bson filter;
+        private Function<T, I> index;
+        private List<B> order;
+        private String orderingField;
+
+        private FindQuery() {}
+
+        /**
+         * @return the converter
+         */
+        public Function<B, I> getConverter() {
+            return converter;
+        }
+
+        /**
+         * @return the filter
+         */
+        public Bson getFilter() {
+            return filter;
+        }
+
+        /**
+         * @return the index
+         */
+        public Function<T, I> getIndex() {
+            return index;
+        }
+
+        /**
+         * @return the order
+         */
+        public List<B> getOrder() {
+            return order;
+        }
+
+        /**
+         * @return the orderingField
+         */
+        public String getOrderingField() {
+            return orderingField;
+        }
+    }
+
+    private static final BulkWriteOptions BULK_WRITE_OPTIONS = new BulkWriteOptions().ordered(false);
     private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBDataStore.class);
+    private static final UpdateOptions UPDATE_OPTIONS = new UpdateOptions().upsert(true);
+
+    protected static Number fromBson(final BsonNumber number) {
+        if(number instanceof BsonInt32) {
+            return number.intValue();
+        } else if(number instanceof BsonInt64) {
+            return number.longValue();
+        } else {
+            return number.doubleValue();
+        }
+    }
 
     private static MongoClientSettings fromConfiguration(final Configuration config) {
         final MongoClientSettings.Builder builder = MongoClientSettings.builder();
 
         final CodecRegistry registry = CodecRegistries.fromRegistries(MongoClients.getDefaultCodecRegistry(),
-            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build()));
+            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).conventions(Lists.newArrayList(new AddUpdatedTimestamp())).build()));
         builder.codecRegistry(registry);
 
         if(config.getCompressor() != Compressor.DEFAULT) {
@@ -880,8 +1018,8 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
             builder.socketSettings(socket.build());
         }
 
-        if(config.getSSL() != null) {
-            final SSLConfiguration conf = config.getSSL();
+        if(config.getSsl() != null) {
+            final SSLConfiguration conf = config.getSsl();
             final SslSettings.Builder ssl = SslSettings.builder();
             if(conf.getEnabled() != null) {
                 ssl.enabled(conf.getEnabled());
@@ -899,6 +1037,16 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         return builder.build();
     }
 
+    protected static BsonNumber toBson(final Number number) {
+        if(number instanceof Integer) {
+            return new BsonInt32(number.intValue());
+        } else if(number instanceof Long) {
+            return new BsonInt64(number.longValue());
+        } else {
+            return new BsonDouble(number.doubleValue());
+        }
+    }
+
     private final MongoDatabase db;
     private final MongoClient mongo;
 
@@ -912,13 +1060,35 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         mongo.close();
     }
 
-    protected <T> T findFirstSynchronously(final Class<T> clazz) {
-        return findFirstSynchronously(clazz, null);
+    protected <T> CloseableIterator<T> find(final Class<T> clazz) {
+        return find(clazz, null, null);
     }
 
-    protected <T> T findFirstSynchronously(final Class<T> clazz, final Bson filter) {
+    protected <T, B extends BsonValue, I> CloseableIterator<T> find(final Class<T> clazz, final Map<String, Object> query,
+        final Function<Map<String, Object>, FindQuery<T, B, I>> find) {
         final MongoCollection<T> collection = getCollection(clazz);
-        final FindIterable<T> find = filter == null ? collection.find() : collection.find(filter);
+
+        if(find == null || query == null) {
+            return new FindResultIterator<>(collection.find());
+        }
+
+        final FindQuery<T, B, I> findQuery = find.apply(query);
+        final AggregateIterable<T> result = collection.aggregate(Lists.newArrayList(
+            match(findQuery.getFilter()),
+            addFields(new Field<Bson>("__order",
+                new BsonDocument("$indexOfArray",
+                    new BsonArray(Lists.newArrayList(new BsonArray(findQuery.getOrder()), new BsonString("$" + findQuery.getOrderingField())))))),
+            sort(ascending("__order"))));
+        return new AggregateResultIterator<>(result, findQuery.getOrder().iterator(), findQuery.getIndex(), findQuery.getConverter());
+    }
+
+    protected <T> T findFirst(final Class<T> clazz) {
+        return findFirst(clazz, null, null);
+    }
+
+    protected <T> T findFirst(final Class<T> clazz, final Map<String, Object> query, final Function<Map<String, Object>, Bson> filter) {
+        final MongoCollection<T> collection = getCollection(clazz);
+        final FindIterable<T> find = filter == null || query == null ? collection.find() : collection.find(filter.apply(query));
 
         final CompletableFuture<T> future = new CompletableFuture<>();
         find.first((final T result, final Throwable exception) -> {
@@ -937,17 +1107,41 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         }
     }
 
-    protected <T> CloseableIterator<T> findSynchronously(final Class<T> clazz) {
-        return findSynchronously(clazz, null);
-    }
-
-    protected <T> CloseableIterator<T> findSynchronously(final Class<T> clazz, final Bson filter) {
-        final MongoCollection<T> collection = getCollection(clazz);
-        final FindIterable<T> find = filter == null ? collection.find() : collection.find(filter);
-        return new SynchronizingCloseableIterator<>(find);
-    }
-
     protected <T> MongoCollection<T> getCollection(final Class<T> clazz) {
         return db.getCollection(clazz.getCanonicalName(), clazz);
+    }
+
+    protected List<BsonNumber> numbersToBson(final Iterable<Number> numbers) {
+        return StreamSupport.stream(numbers.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+    }
+
+    protected List<BsonString> stringsToBson(final Iterable<String> strings) {
+        return StreamSupport.stream(strings.spliterator(), false).map((final String string) -> {
+            return new BsonString(string);
+        }).collect(Collectors.toList());
+    }
+
+    protected <T> void upsert(final Class<T> clazz, final Iterable<T> objects, final Function<T, Bson> filter) {
+        final List<WriteModel<T>> writes = StreamSupport.stream(objects.spliterator(), false).map((final T object) -> {
+            return new ReplaceOneModel<>(filter.apply(object), object, UPDATE_OPTIONS);
+        }).collect(Collectors.toList());
+
+        final MongoCollection<T> collection = getCollection(clazz);
+        collection.bulkWrite(writes, BULK_WRITE_OPTIONS, (final BulkWriteResult result, final Throwable exception) -> {
+            if(exception != null) {
+                LOGGER.error("Error bulk upserting to MongoDB!", exception);
+                throw new OriannaException("Error bulk upserting to MongoDB!", exception);
+            }
+        });
+    }
+
+    protected <T> void upsert(final Class<T> clazz, final T object, final Function<T, Bson> filter) {
+        final MongoCollection<T> collection = getCollection(clazz);
+        collection.replaceOne(filter.apply(object), object, UPDATE_OPTIONS, (final UpdateResult result, final Throwable exception) -> {
+            if(exception != null) {
+                LOGGER.error("Error upserting to MongoDB!", exception);
+                throw new OriannaException("Error upserting to MongoDB!", exception);
+            }
+        });
     }
 }
