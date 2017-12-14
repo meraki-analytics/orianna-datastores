@@ -58,6 +58,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ChampionMasteries.class.getCanonicalName(), ExpirationPeriod.create(2, TimeUnit.HOURS))
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2, TimeUnit.HOURS))
             .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(45, TimeUnit.MINUTES))
+            .put(SummonerPositions.class.getCanonicalName(), ExpirationPeriod.create(45, TimeUnit.MINUTES))
             .build();
 
         private Map<String, ExpirationPeriod> expirationPeriods = DEFAULT_EXPIRATION_PERIODS;
@@ -79,8 +80,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     }
 
     private static final Set<Tier> LEAGUE_LIST_ENDPOINTS = ImmutableSet.of(Tier.MASTER, Tier.CHALLENGER);
-
-    private static Logger LOGGER = LoggerFactory.getLogger(MongoDBDataStore.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBDataStore.class);
 
     public MongoDBDataStore() {
         this(new Configuration());
@@ -99,6 +99,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ChampionMasteries.class, new String[] {"platform", "summonerId"})
             .put(ChampionMasteryScore.class, new String[] {"platform", "summonerId"})
             .put(LeagueList.class, new String[] {"platform", "leagueId"})
+            .put(SummonerPositions.class, new String[] {"platform", "summonerId"})
             .build();
 
         for(final Class<?> clazz : compositeKeys.keySet()) {
