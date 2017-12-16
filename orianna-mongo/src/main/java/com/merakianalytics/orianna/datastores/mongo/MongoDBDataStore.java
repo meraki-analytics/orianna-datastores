@@ -68,7 +68,6 @@ import com.mongodb.connection.SslSettings;
 
 public abstract class MongoDBDataStore extends AbstractDataStore implements AutoCloseable {
     public static enum Compressor {
-            DEFAULT,
             SNAPPY,
             ZLIB;
     }
@@ -534,7 +533,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
             }
         }
 
-        private Compressor compressor = Compressor.DEFAULT;
+        private Compressor compressor;
         private ConnectionPoolConfiguration connectionPool;
         private String database = "orianna";
         private HeartbeatConfiguration heartbeat;
@@ -863,10 +862,8 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
             CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).conventions(Lists.newArrayList(new AddUpdatedTimestamp())).build()));
         builder.codecRegistry(registry);
 
-        if(config.getCompressor() != Compressor.DEFAULT) {
+        if(config.getCompressor() != null) {
             switch(config.getCompressor()) {
-                case DEFAULT:
-                    break;
                 case SNAPPY:
                     builder.compressorList(ImmutableList.of(MongoCompressor.createSnappyCompressor()));
                     break;
