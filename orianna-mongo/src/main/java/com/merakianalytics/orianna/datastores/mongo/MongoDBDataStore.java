@@ -41,10 +41,10 @@ import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configurati
 import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration.ServerConfiguration;
 import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration.SocketConfiguration;
 import com.merakianalytics.orianna.types.common.OriannaException;
-import com.mongodb.ConnectionString;
 import com.mongodb.MongoCompressor;
 import com.mongodb.MongoCredential;
 import com.mongodb.ReadConcern;
+import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
 import com.mongodb.async.client.AggregateIterable;
 import com.mongodb.async.client.FindIterable;
@@ -60,6 +60,7 @@ import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.UpdateResult;
+import com.mongodb.connection.ClusterConnectionMode;
 import com.mongodb.connection.ClusterSettings;
 import com.mongodb.connection.ConnectionPoolSettings;
 import com.mongodb.connection.ServerSettings;
@@ -875,24 +876,11 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
             }
         }
 
-        // host, port, username, password, database
-        final StringBuilder connectionString = new StringBuilder("mongodb://");
-        if(config.getUserName() != null) {
-            if(config.getPassword() != null) {
-                connectionString.append(config.getUserName() + ":" + config.getPassword() + "@");
-            } else {
-                connectionString.append(config.getUserName() + "@");
-            }
-        }
-        connectionString.append(config.getHost() + ":" + config.getPort() + "/" + config.getDatabase());
-
-        builder.clusterSettings(ClusterSettings.builder().applyConnectionString(new ConnectionString(connectionString.toString())).build());
-
-        final ConnectionPoolSettings.Builder connectionPool = ConnectionPoolSettings.builder();
-        connectionPool.applyConnectionString(new ConnectionString(connectionString.toString()));
+        builder.clusterSettings(ClusterSettings.builder().hosts(Lists.newArrayList(new ServerAddress(config.getHost(), config.getPort()))).mode(ClusterConnectionMode.SINGLE).build());
 
         if(config.getConnectionPool() != null) {
             final ConnectionPoolConfiguration conf = config.getConnectionPool();
+            final ConnectionPoolSettings.Builder connectionPool = ConnectionPoolSettings.builder();
             if(conf.getMaintenanceFrequency() != null) {
                 connectionPool.maintenanceFrequency(conf.getMaintenanceFrequency(),
                     conf.getMaintenanceFrequencyUnit() == null ? TimeUnit.MILLISECONDS : conf.getMaintenanceFrequencyUnit());
@@ -921,8 +909,8 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
             if(conf.getMinSize() != null) {
                 connectionPool.minSize(conf.getMinSize());
             }
+            builder.connectionPoolSettings(connectionPool.build());
         }
-        builder.connectionPoolSettings(connectionPool.build());
 
         if(config.getPassword() != null) {
             builder.credential(MongoCredential.createCredential(config.getUserName(), config.getDatabase(), config.getPassword().toCharArray()));
