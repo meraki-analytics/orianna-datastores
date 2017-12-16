@@ -385,13 +385,13 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
             if(leagueId == null) {
                 if(tier == null || queue == null) {
-                    throw new IllegalArgumentException("Query was missing required parameters! Either leagueId or tier and queue  must be included!");
+                    throw new IllegalArgumentException("Query was missing required parameters! Either leagueId or tier and queue must be included!");
                 } else if(!LEAGUE_LIST_ENDPOINTS.contains(tier) || !Queue.RANKED.contains(queue)) {
                     return null;
                 }
             }
 
-            if(leagueId == null) {
+            if(leagueId != null) {
                 return and(eq("platform", platform.getTag()), eq("leagueId", leagueId));
             } else {
                 return and(eq("platform", platform.getTag()), eq("tier", tier.name()), eq("queue", queue.name()));
