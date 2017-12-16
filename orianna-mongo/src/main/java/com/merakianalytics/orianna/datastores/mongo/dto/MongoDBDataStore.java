@@ -1696,7 +1696,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             });
     }
 
-    @Put(Languages.class)
+    @Put(Versions.class)
     public void putVersions(final Versions v, final PipelineContext context) {
         upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Versions.class,
             com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Versions.convert(v),
