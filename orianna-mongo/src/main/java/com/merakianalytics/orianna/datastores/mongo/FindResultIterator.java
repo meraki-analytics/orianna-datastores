@@ -11,9 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import com.merakianalytics.datapipelines.iterators.CloseableIterator;
 import com.merakianalytics.orianna.types.common.OriannaException;
-import com.mongodb.CursorType;
 import com.mongodb.async.AsyncBatchCursor;
-import com.mongodb.async.client.FindIterable;
+import com.mongodb.async.client.MongoIterable;
 
 public class FindResultIterator<T> implements CloseableIterator<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(FindResultIterator.class);
@@ -21,9 +20,9 @@ public class FindResultIterator<T> implements CloseableIterator<T> {
     private boolean empty = false;
     private final BlockingQueue<T> queue = new LinkedBlockingQueue<>();
 
-    public FindResultIterator(final FindIterable<T> result) {
+    public FindResultIterator(final MongoIterable<T> result) {
         final CompletableFuture<AsyncBatchCursor<T>> future = new CompletableFuture<>();
-        result.noCursorTimeout(true).cursorType(CursorType.NonTailable).batchCursor((final AsyncBatchCursor<T> cursor, final Throwable exception) -> {
+        result.batchCursor((final AsyncBatchCursor<T> cursor, final Throwable exception) -> {
             if(exception != null) {
                 future.completeExceptionally(exception);
             } else {

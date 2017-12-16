@@ -774,74 +774,51 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         }
     }
 
-    protected static class FindQuery<T, B extends BsonValue, I> {
-        public static class Builder<T, B extends BsonValue, I> {
-            private Function<B, I> converter;
+    protected static class FindQuery {
+        public static class Builder {
             private Bson filter;
-            private Function<T, I> index;
-            private List<B> order;
+            private List<? extends BsonValue> order;
             private String orderingField;
 
             private Builder() {}
 
-            public FindQuery<T, B, I> build() {
-                if(filter == null || order == null || orderingField == null || index == null || converter == null) {
-                    throw new IllegalStateException("Must set filter, order, orderingField, index, and converter!");
+            public FindQuery build() {
+                if(filter == null || order == null || orderingField == null) {
+                    throw new IllegalStateException("Must set filter, order, and orderingField!");
                 }
 
-                final FindQuery<T, B, I> query = new FindQuery<>();
+                final FindQuery query = new FindQuery();
                 query.filter = filter;
                 query.order = order;
                 query.orderingField = orderingField;
-                query.converter = converter;
-                query.index = index;
                 return query;
             }
 
-            public Builder<T, B, I> converter(final Function<B, I> converter) {
-                this.converter = converter;
-                return this;
-            }
-
-            public Builder<T, B, I> filter(final Bson filter) {
+            public Builder filter(final Bson filter) {
                 this.filter = filter;
                 return this;
             }
 
-            public Builder<T, B, I> index(final Function<T, I> index) {
-                this.index = index;
-                return this;
-            }
-
-            public Builder<T, B, I> order(final List<B> order) {
+            public Builder order(final List<? extends BsonValue> order) {
                 this.order = order;
                 return this;
             }
 
-            public Builder<T, B, I> orderingField(final String orderingField) {
+            public Builder orderingField(final String orderingField) {
                 this.orderingField = orderingField;
                 return this;
             }
         }
 
-        public static <T, B extends BsonValue, I> Builder<T, B, I> builder() {
-            return new Builder<>();
+        public static Builder builder() {
+            return new Builder();
         }
 
-        private Function<B, I> converter;
         private Bson filter;
-        private Function<T, I> index;
-        private List<B> order;
+        private List<? extends BsonValue> order;
         private String orderingField;
 
         private FindQuery() {}
-
-        /**
-         * @return the converter
-         */
-        public Function<B, I> getConverter() {
-            return converter;
-        }
 
         /**
          * @return the filter
@@ -851,16 +828,9 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         }
 
         /**
-         * @return the index
-         */
-        public Function<T, I> getIndex() {
-            return index;
-        }
-
-        /**
          * @return the order
          */
-        public List<B> getOrder() {
+        public List<? extends BsonValue> getOrder() {
             return order;
         }
 
@@ -1067,8 +1037,8 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         return find(clazz, null, null);
     }
 
-    protected <T, B extends BsonValue, I> CloseableIterator<T> find(final Class<T> clazz, final Map<String, Object> query,
-        final Function<Map<String, Object>, FindQuery<T, B, I>> find) {
+    protected <T> CloseableIterator<T> find(final Class<T> clazz, final Map<String, Object> query,
+        final Function<Map<String, Object>, FindQuery> find) {
         final MongoCollection<T> collection = getCollection(clazz);
 
         if(find == null || query == null) {
@@ -1090,12 +1060,12 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
             }
         }
 
-        final FindQuery<T, B, I> findQuery = find.apply(query);
+        final FindQuery findQuery = find.apply(query);
         if(findQuery == null) {
             return CloseableIterators.empty();
         }
 
-        final CompletableFuture<AggregateResultIterator<T, B, I>> future = new CompletableFuture<>();
+        final CompletableFuture<FindResultIterator<T>> future = new CompletableFuture<>();
         collection.count(findQuery.getFilter(), (final Long count, final Throwable exception) -> {
             if(exception != null) {
                 future.completeExceptionally(exception);
@@ -1109,7 +1079,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
                             new BsonArray(Lists.newArrayList(new BsonArray(findQuery.getOrder()), new BsonString("$" + findQuery.getOrderingField())))))),
                     sort(ascending("__order"))));
 
-                future.complete(new AggregateResultIterator<>(result, findQuery.getOrder().iterator(), findQuery.getIndex(), findQuery.getConverter()));
+                future.complete(new FindResultIterator<>(result));
             }
         });
         try {

@@ -19,7 +19,6 @@ import java.util.stream.StreamSupport;
 
 import org.bson.BsonNumber;
 import org.bson.BsonString;
-import org.bson.BsonValue;
 import org.bson.codecs.pojo.AddUpdatedTimestamp;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
@@ -414,23 +413,20 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final Set<String> includedData = query.get("includedData") == null ? Collections.<String> emptySet() : (Set<String>)query.get("includedData");
 
             if(ids != null) {
-                final List<BsonValue> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+                final List<BsonNumber> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("id", order), eq("version", version), eq("locale", locale), eq("includedData", includedData));
-                return FindQuery.<Champion, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("id").converter((final BsonValue value) -> value.asNumber().intValue()).index(Champion::getId).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("id").build();
             } else if(names != null) {
-                final List<BsonValue> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+                final List<BsonString> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("name", order), eq("version", version), eq("locale", locale), eq("includedData", includedData));
-                return FindQuery.<Champion, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("name").converter((final BsonValue value) -> value.asString().getValue()).index(Champion::getName).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("name").build();
             } else {
-                final List<BsonValue> order = StreamSupport.stream(keys.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+                final List<BsonString> order = StreamSupport.stream(keys.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("key", order), eq("version", version), eq("locale", locale), eq("includedData", includedData));
-                return FindQuery.<Champion, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("key").converter((final BsonValue value) -> value.asString().getValue()).index(Champion::getKey).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("key").build();
             }
         });
     }
@@ -450,8 +446,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final Bson filter =
                 and(eq("platform", platform), in("version", versions), eq("locale", locale), eq("includedData", includedData), eq("dataById", dataById));
 
-            return FindQuery.<ChampionList, BsonString, String> builder().filter(filter).order(versions)
-                .orderingField("version").converter(BsonString::getValue).index(ChampionList::getVersion).build();
+            return FindQuery.builder().filter(filter).order(versions).orderingField("version").build();
         });
     }
 
@@ -467,10 +462,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
                 final List<BsonNumber> summonerIds = numbersToBson(iter);
                 final Bson filter = and(eq("platform", platform), in("summonerId", summonerIds));
 
-                return FindQuery.<com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries, BsonNumber, Long> builder()
-                    .filter(filter).order(summonerIds)
-                    .orderingField("summonerId").converter(BsonNumber::longValue)
-                    .index(com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries::getSummonerId).build();
+                return FindQuery.builder().filter(filter).order(summonerIds).orderingField("summonerId").build();
             }), com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries::convert);
     }
 
@@ -486,8 +478,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final List<BsonNumber> championIds = numbersToBson(iter);
             final Bson filter = and(eq("platform", platform), eq("playerId", summonerId), in("championId", championIds));
 
-            return FindQuery.<ChampionMastery, BsonNumber, Long> builder().filter(filter).order(championIds)
-                .orderingField("championId").converter(BsonNumber::longValue).index(ChampionMastery::getChampionId).build();
+            return FindQuery.builder().filter(filter).order(championIds).orderingField("championId").build();
         });
     }
 
@@ -502,8 +493,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final List<BsonNumber> summonerIds = numbersToBson(iter);
             final Bson filter = and(eq("platform", platform), in("summonerId", summonerIds));
 
-            return FindQuery.<ChampionMasteryScore, BsonNumber, Long> builder().filter(filter).order(summonerIds)
-                .orderingField("summonerId").converter(BsonNumber::longValue).index(ChampionMasteryScore::getSummonerId).build();
+            return FindQuery.builder().filter(filter).order(summonerIds).orderingField("summonerId").build();
         });
     }
 
@@ -519,8 +509,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final List<BsonNumber> ids = numbersToBson(iter);
             final Bson filter = and(eq("platform", platform.getTag()), in("id", ids));
 
-            return FindQuery.<com.merakianalytics.orianna.types.dto.champion.Champion, BsonNumber, Long> builder().filter(filter).order(ids)
-                .orderingField("id").converter(BsonNumber::longValue).index(com.merakianalytics.orianna.types.dto.champion.Champion::getId).build();
+            return FindQuery.builder().filter(filter).order(ids).orderingField("id").build();
         });
     }
 
@@ -537,9 +526,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
                 .map((final Platform platform) -> new BsonString(platform.getTag())).collect(Collectors.toList());
             final Bson filter = and(eq("freeToPlay", freeToPlay), in("platform", platforms));
 
-            return FindQuery.<com.merakianalytics.orianna.types.dto.champion.ChampionList, BsonString, String> builder().filter(filter).order(platforms)
-                .orderingField("platform").converter(BsonString::getValue).index(com.merakianalytics.orianna.types.dto.champion.ChampionList::getPlatform)
-                .build();
+            return FindQuery.builder().filter(filter).order(platforms).orderingField("platform").build();
         });
     }
 
@@ -554,8 +541,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final List<BsonNumber> summonerIds = numbersToBson(iter);
             final Bson filter = and(eq("platformId", platform), in("summonerId", summonerIds));
 
-            return FindQuery.<CurrentGameInfo, BsonNumber, Long> builder().filter(filter).order(summonerIds)
-                .orderingField("summonerId").converter(BsonNumber::longValue).index(CurrentGameInfo::getSummonerId).build();
+            return FindQuery.builder().filter(filter).order(summonerIds).orderingField("summonerId").build();
         });
     }
 
@@ -570,8 +556,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
                 .map((final Platform platform) -> new BsonString(platform.getTag())).collect(Collectors.toList());
             final Bson filter = in("platform", platforms);
 
-            return FindQuery.<FeaturedGames, BsonString, String> builder().filter(filter).order(platforms)
-                .orderingField("platform").converter(BsonString::getValue).index(FeaturedGames::getPlatform).build();
+            return FindQuery.builder().filter(filter).order(platforms).orderingField("platform").build();
         });
     }
 
@@ -589,17 +574,15 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final Set<String> includedData = query.get("includedData") == null ? Collections.<String> emptySet() : (Set<String>)query.get("includedData");
 
             if(ids != null) {
-                final List<BsonValue> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+                final List<BsonNumber> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("id", order), eq("version", version), eq("locale", locale), eq("includedData", includedData));
-                return FindQuery.<Item, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("id").converter((final BsonValue value) -> value.asNumber().intValue()).index(Item::getId).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("id").build();
             } else {
-                final List<BsonValue> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+                final List<BsonString> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("name", order), eq("version", version), eq("locale", locale), eq("includedData", includedData));
-                return FindQuery.<Item, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("name").converter((final BsonValue value) -> value.asString().getValue()).index(Item::getName).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("name").build();
             }
         });
     }
@@ -618,8 +601,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final Bson filter =
                 and(eq("platform", platform), in("version", versions), eq("locale", locale), eq("includedData", includedData));
 
-            return FindQuery.<ItemList, BsonString, String> builder().filter(filter).order(versions)
-                .orderingField("version").converter(BsonString::getValue).index(ItemList::getVersion).build();
+            return FindQuery.builder().filter(filter).order(versions).orderingField("version").build();
         });
     }
 
@@ -635,10 +617,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
                     .map((final Platform platform) -> new BsonString(platform.getTag())).collect(Collectors.toList());
                 final Bson filter = in("platform", platforms);
 
-                return FindQuery.<com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Languages, BsonString, String> builder()
-                    .filter(filter).order(platforms)
-                    .orderingField("platform").converter(BsonString::getValue)
-                    .index(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Languages::getPlatform).build();
+                return FindQuery.builder().filter(filter).order(platforms).orderingField("platform").build();
             }), com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Languages::convert);
     }
 
@@ -654,8 +633,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final List<BsonString> locales = StreamSupport.stream(iter.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
             final Bson filter = and(eq("platform", platform), in("locale", locales), eq("version", version));
 
-            return FindQuery.<LanguageStrings, BsonString, String> builder().filter(filter).order(locales)
-                .orderingField("locale").converter(BsonString::getValue).index(LanguageStrings::getLocale).build();
+            return FindQuery.builder().filter(filter).order(locales).orderingField("locale").build();
         });
     }
 
@@ -679,17 +657,13 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
             if(leagueIds != null) {
                 final List<BsonString> ids = StreamSupport.stream(leagueIds.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
-
                 final Bson filter = and(eq("platform", platform), in("leagueId", ids));
-                return FindQuery.<LeagueList, BsonString, String> builder().filter(filter).order(ids)
-                    .orderingField("leagueId").converter(BsonString::getValue).index(LeagueList::getLeagueId).build();
+                return FindQuery.builder().filter(filter).order(ids).orderingField("leagueId").build();
             } else {
                 final List<BsonString> ids =
                     StreamSupport.stream(queues.spliterator(), false).map((final Queue queue) -> new BsonString(queue.name())).collect(Collectors.toList());
-
                 final Bson filter = and(eq("platform", platform), eq("tier", tier.name()), in("queue", ids));
-                return FindQuery.<LeagueList, BsonString, String> builder().filter(filter).order(ids)
-                    .orderingField("queue").converter(BsonString::getValue).index(LeagueList::getQueue).build();
+                return FindQuery.builder().filter(filter).order(ids).orderingField("queue").build();
             }
         });
     }
@@ -706,8 +680,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final List<BsonString> versions = StreamSupport.stream(iter.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
             final Bson filter = and(eq("platform", platform), in("version", versions), eq("locale", locale));
 
-            return FindQuery.<MapData, BsonString, String> builder().filter(filter).order(versions)
-                .orderingField("version").converter(BsonString::getValue).index(MapData::getVersion).build();
+            return FindQuery.builder().filter(filter).order(versions).orderingField("version").build();
         });
     }
 
@@ -725,17 +698,15 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final Set<String> includedData = query.get("includedData") == null ? Collections.<String> emptySet() : (Set<String>)query.get("includedData");
 
             if(ids != null) {
-                final List<BsonValue> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+                final List<BsonNumber> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("id", order), eq("version", version), eq("locale", locale), eq("includedData", includedData));
-                return FindQuery.<Mastery, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("id").converter((final BsonValue value) -> value.asNumber().intValue()).index(Mastery::getId).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("id").build();
             } else {
-                final List<BsonValue> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+                final List<BsonString> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("name", order), eq("version", version), eq("locale", locale), eq("includedData", includedData));
-                return FindQuery.<Mastery, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("name").converter((final BsonValue value) -> value.asString().getValue()).index(Mastery::getName).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("name").build();
             }
         });
     }
@@ -754,8 +725,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final Bson filter =
                 and(eq("platform", platform), in("version", versions), eq("locale", locale), eq("includedData", includedData));
 
-            return FindQuery.<MasteryList, BsonString, String> builder().filter(filter).order(versions)
-                .orderingField("version").converter(BsonString::getValue).index(MasteryList::getVersion).build();
+            return FindQuery.builder().filter(filter).order(versions).orderingField("version").build();
         });
     }
 
@@ -777,8 +747,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
                 filter = and(eq("platformId", platform), eq("tournamentCode", tournamentCode), in("gameId", matchIds));
             }
 
-            return FindQuery.<Match, BsonNumber, Long> builder().filter(filter).order(matchIds)
-                .orderingField("gameId").converter(BsonNumber::longValue).index(Match::getGameId).build();
+            return FindQuery.builder().filter(filter).order(matchIds).orderingField("gameId").build();
         });
     }
 
@@ -793,8 +762,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final List<BsonNumber> matchIds = numbersToBson(iter);
             final Bson filter = and(eq("platform", platform), in("matchId", matchIds));
 
-            return FindQuery.<MatchTimeline, BsonNumber, Long> builder().filter(filter).order(matchIds)
-                .orderingField("matchId").converter(BsonNumber::longValue).index(MatchTimeline::getMatchId).build();
+            return FindQuery.builder().filter(filter).order(matchIds).orderingField("matchId").build();
         });
     }
 
@@ -810,8 +778,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final List<BsonString> versions = StreamSupport.stream(iter.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
             final Bson filter = and(eq("platform", platform), in("version", versions), eq("locale", locale));
 
-            return FindQuery.<ProfileIconData, BsonString, String> builder().filter(filter).order(versions)
-                .orderingField("version").converter(BsonString::getValue).index(ProfileIconData::getVersion).build();
+            return FindQuery.builder().filter(filter).order(versions).orderingField("version").build();
         });
     }
 
@@ -826,8 +793,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
                 .map((final Platform platform) -> new BsonString(platform.getTag())).collect(Collectors.toList());
             final Bson filter = in("platform", platforms);
 
-            return FindQuery.<Realm, BsonString, String> builder().filter(filter).order(platforms).orderingField("platform").converter(BsonString::getValue)
-                .index(Realm::getPlatform).build();
+            return FindQuery.builder().filter(filter).order(platforms).orderingField("platform").build();
         });
     }
 
@@ -845,17 +811,15 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final Set<String> includedData = query.get("includedData") == null ? Collections.<String> emptySet() : (Set<String>)query.get("includedData");
 
             if(ids != null) {
-                final List<BsonValue> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+                final List<BsonNumber> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("id", order), eq("version", version), eq("locale", locale), eq("includedData", includedData));
-                return FindQuery.<Rune, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("id").converter((final BsonValue value) -> value.asNumber().intValue()).index(Rune::getId).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("id").build();
             } else {
-                final List<BsonValue> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+                final List<BsonString> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("name", order), eq("version", version), eq("locale", locale), eq("includedData", includedData));
-                return FindQuery.<Rune, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("name").converter((final BsonValue value) -> value.asString().getValue()).index(Rune::getName).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("name").build();
             }
         });
     }
@@ -874,8 +838,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final Bson filter =
                 and(eq("platform", platform), in("version", versions), eq("locale", locale), eq("includedData", includedData));
 
-            return FindQuery.<RuneList, BsonString, String> builder().filter(filter).order(versions)
-                .orderingField("version").converter(BsonString::getValue).index(RuneList::getVersion).build();
+            return FindQuery.builder().filter(filter).order(versions).orderingField("version").build();
         });
     }
 
@@ -890,9 +853,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
                 .map((final Platform platform) -> new BsonString(platform.getTag().toLowerCase())).collect(Collectors.toList());
             final Bson filter = in("region_tag", platforms);
 
-            return FindQuery.<ShardStatus, BsonString, String> builder().filter(filter).order(platforms).orderingField("region_tag")
-                .converter(BsonString::getValue)
-                .index((final ShardStatus status) -> status.getRegion_tag().toLowerCase()).build();
+            return FindQuery.builder().filter(filter).order(platforms).orderingField("region_tag").build();
         });
     }
 
@@ -908,23 +869,21 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             Utilities.checkAtLeastOneNotNull(summonerIds, "ids", accountIds, "accountIds", summonerNames, "names");
 
             if(summonerIds != null) {
-                final List<BsonValue> order = StreamSupport.stream(summonerIds.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+                final List<BsonNumber> order =
+                    StreamSupport.stream(summonerIds.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("id", order));
-                return FindQuery.<Summoner, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("id").converter((final BsonValue value) -> value.asNumber().intValue()).index(Summoner::getId).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("id").build();
             } else if(summonerNames != null) {
-                final List<BsonValue> order = StreamSupport.stream(summonerNames.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+                final List<BsonString> order = StreamSupport.stream(summonerNames.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("name", order));
-                return FindQuery.<Summoner, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("name").converter((final BsonValue value) -> value.asString().getValue()).index(Summoner::getName).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("name").build();
             } else {
-                final List<BsonValue> order = StreamSupport.stream(accountIds.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+                final List<BsonNumber> order = StreamSupport.stream(accountIds.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("accountId", order));
-                return FindQuery.<Summoner, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("accountId").converter((final BsonValue value) -> value.asString().getValue()).index(Summoner::getAccountId).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("accountId").build();
             }
         });
     }
@@ -941,10 +900,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
                 final List<BsonNumber> summonerIds = numbersToBson(iter);
                 final Bson filter = and(eq("platform", platform), in("summonerId", summonerIds));
 
-                return FindQuery.<com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions, BsonNumber, Long> builder().filter(filter)
-                    .order(summonerIds)
-                    .orderingField("summonerId").converter(BsonNumber::longValue)
-                    .index(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions::getSummonerId).build();
+                return FindQuery.builder().filter(filter).order(summonerIds).orderingField("summonerId").build();
             }), com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions::convert);
     }
 
@@ -962,17 +918,15 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final Set<String> includedData = query.get("includedData") == null ? Collections.<String> emptySet() : (Set<String>)query.get("includedData");
 
             if(ids != null) {
-                final List<BsonValue> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+                final List<BsonNumber> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("id", order), eq("version", version), eq("locale", locale), eq("includedData", includedData));
-                return FindQuery.<SummonerSpell, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("id").converter((final BsonValue value) -> value.asNumber().intValue()).index(SummonerSpell::getId).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("id").build();
             } else {
-                final List<BsonValue> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+                final List<BsonString> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
                 final Bson filter =
                     and(eq("platform", platform.getTag()), in("name", order), eq("version", version), eq("locale", locale), eq("includedData", includedData));
-                return FindQuery.<SummonerSpell, BsonValue, Object> builder().filter(filter).order(order)
-                    .orderingField("name").converter((final BsonValue value) -> value.asString().getValue()).index(SummonerSpell::getName).build();
+                return FindQuery.builder().filter(filter).order(order).orderingField("name").build();
             }
         });
     }
@@ -991,8 +945,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final Bson filter =
                 and(eq("platform", platform), in("version", versions), eq("locale", locale), eq("includedData", includedData));
 
-            return FindQuery.<SummonerSpellList, BsonString, String> builder().filter(filter).order(versions)
-                .orderingField("version").converter(BsonString::getValue).index(SummonerSpellList::getVersion).build();
+            return FindQuery.builder().filter(filter).order(versions).orderingField("version").build();
         });
     }
 
@@ -1008,10 +961,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
                 final List<BsonString> tournamentCodes = StreamSupport.stream(iter.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
                 final Bson filter = and(eq("platform", platform), in("tournamentCode", tournamentCodes));
 
-                return FindQuery.<com.merakianalytics.orianna.datastores.mongo.proxies.dto.match.TournamentMatches, BsonString, String> builder()
-                    .filter(filter).order(tournamentCodes)
-                    .orderingField("tournamentCode").converter(BsonString::getValue)
-                    .index(com.merakianalytics.orianna.datastores.mongo.proxies.dto.match.TournamentMatches::getTournamentCode).build();
+                return FindQuery.builder().filter(filter).order(tournamentCodes).orderingField("tournamentCode").build();
             }), com.merakianalytics.orianna.datastores.mongo.proxies.dto.match.TournamentMatches::convert);
     }
 
@@ -1027,10 +977,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
                     .map((final Platform platform) -> new BsonString(platform.getTag())).collect(Collectors.toList());
                 final Bson filter = in("platform", platforms);
 
-                return FindQuery.<com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Versions, BsonString, String> builder()
-                    .filter(filter).order(platforms)
-                    .orderingField("platform").converter(BsonString::getValue)
-                    .index(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Versions::getPlatform).build();
+                return FindQuery.builder().filter(filter).order(platforms).orderingField("platform").build();
             }), com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Versions::convert);
     }
 
