@@ -1051,7 +1051,6 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
 
     private final Map<Class<?>, String> collectionNames = new ConcurrentHashMap<>();
     private final MongoDatabase db;
-
     private final MongoClient mongo;
 
     public MongoDBDataStore(final Configuration config) {
@@ -1073,7 +1072,22 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         final MongoCollection<T> collection = getCollection(clazz);
 
         if(find == null || query == null) {
-            return new FindResultIterator<>(collection.find());
+            final CompletableFuture<FindResultIterator<T>> future = new CompletableFuture<>();
+            collection.count((final Long count, final Throwable exception) -> {
+                if(exception != null) {
+                    future.completeExceptionally(exception);
+                } else if(0L == count) {
+                    future.complete(null);
+                } else {
+                    future.complete(new FindResultIterator<>(collection.find()));
+                }
+            });
+            try {
+                return future.get();
+            } catch(InterruptedException | ExecutionException e) {
+                LOGGER.error("Error on MongoDB query!", e);
+                throw new OriannaException("Error on MongoDB query!", e);
+            }
         }
 
         final FindQuery<T, B, I> findQuery = find.apply(query);
@@ -1081,13 +1095,29 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
             return CloseableIterators.empty();
         }
 
-        final AggregateIterable<T> result = collection.aggregate(Lists.newArrayList(
-            match(findQuery.getFilter()),
-            addFields(new Field<Bson>("__order",
-                new BsonDocument("$indexOfArray",
-                    new BsonArray(Lists.newArrayList(new BsonArray(findQuery.getOrder()), new BsonString("$" + findQuery.getOrderingField())))))),
-            sort(ascending("__order"))));
-        return new AggregateResultIterator<>(result, findQuery.getOrder().iterator(), findQuery.getIndex(), findQuery.getConverter());
+        final CompletableFuture<AggregateResultIterator<T, B, I>> future = new CompletableFuture<>();
+        collection.count(findQuery.getFilter(), (final Long count, final Throwable exception) -> {
+            if(exception != null) {
+                future.completeExceptionally(exception);
+            } else if(findQuery.getOrder().size() > count) {
+                future.complete(null);
+            } else {
+                final AggregateIterable<T> result = collection.aggregate(Lists.newArrayList(
+                    match(findQuery.getFilter()),
+                    addFields(new Field<Bson>("__order",
+                        new BsonDocument("$indexOfArray",
+                            new BsonArray(Lists.newArrayList(new BsonArray(findQuery.getOrder()), new BsonString("$" + findQuery.getOrderingField())))))),
+                    sort(ascending("__order"))));
+
+                future.complete(new AggregateResultIterator<>(result, findQuery.getOrder().iterator(), findQuery.getIndex(), findQuery.getConverter()));
+            }
+        });
+        try {
+            return future.get();
+        } catch(InterruptedException | ExecutionException e) {
+            LOGGER.error("Error on MongoDB query!", e);
+            throw new OriannaException("Error on MongoDB query!", e);
+        }
     }
 
     protected <T> T findFirst(final Class<T> clazz) {
