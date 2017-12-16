@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -239,14 +240,14 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @Get(ChampionMasteries.class)
     public ChampionMasteries getChampionMasteries(final Map<String, Object> q, final PipelineContext context) {
-        return findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries.class, q,
+        return Optional.ofNullable(findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries.class, q,
             (final Map<String, Object> query) -> {
                 final Platform platform = (Platform)query.get("platform");
                 final Number summonerId = (Number)query.get("summonerId");
                 Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
                 return and(eq("platform", platform.getTag()), eq("summonerId", summonerId));
-            }).convert();
+            })).map(com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries::convert).orElse(null);
     }
 
     @Get(ChampionMastery.class)
@@ -352,13 +353,13 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @Get(Languages.class)
     public Languages getLanguages(final Map<String, Object> q, final PipelineContext context) {
-        return findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Languages.class, q,
+        return Optional.ofNullable(findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Languages.class, q,
             (final Map<String, Object> query) -> {
                 final Platform platform = (Platform)query.get("platform");
                 Utilities.checkNotNull(platform, "platform");
 
                 return eq("platform", platform.getTag());
-            }).convert();
+            })).map(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Languages::convert).orElse(null);
     }
 
     @Get(LanguageStrings.class)
@@ -1144,13 +1145,14 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @Get(SummonerPositions.class)
     public SummonerPositions getSummonerPositions(final Map<String, Object> q, final PipelineContext context) {
-        return findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.class, q, (final Map<String, Object> query) -> {
-            final Platform platform = (Platform)query.get("platform");
-            final Number summonerId = (Number)query.get("summonerId");
-            Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
+        return Optional.ofNullable(
+            findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.class, q, (final Map<String, Object> query) -> {
+                final Platform platform = (Platform)query.get("platform");
+                final Number summonerId = (Number)query.get("summonerId");
+                Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
-            return and(eq("platform", platform.getTag()), eq("summonerId", summonerId));
-        }).convert();
+                return and(eq("platform", platform.getTag()), eq("summonerId", summonerId));
+            })).map(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions::convert).orElse(null);
     }
 
     @SuppressWarnings("unchecked")
@@ -1190,25 +1192,25 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @Get(TournamentMatches.class)
     public TournamentMatches getTournamentMatches(final Map<String, Object> q, final PipelineContext context) {
-        return findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.match.TournamentMatches.class, q,
+        return Optional.ofNullable(findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.match.TournamentMatches.class, q,
             (final Map<String, Object> query) -> {
                 final Platform platform = (Platform)query.get("platform");
                 final String tournamentCode = (String)query.get("tournamentCode");
                 Utilities.checkNotNull(platform, "platform", tournamentCode, "tournamentCode");
 
                 return and(eq("platform", platform.getTag()), eq("tournamentCode", tournamentCode));
-            }).convert();
+            })).map(com.merakianalytics.orianna.datastores.mongo.proxies.dto.match.TournamentMatches::convert).orElse(null);
     }
 
     @Get(Versions.class)
     public Versions getVersions(final Map<String, Object> q, final PipelineContext context) {
-        return findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Versions.class, q,
+        return Optional.ofNullable(findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Versions.class, q,
             (final Map<String, Object> query) -> {
                 final Platform platform = (Platform)query.get("platform");
                 Utilities.checkNotNull(platform, "platform");
 
                 return eq("platform", platform.getTag());
-            }).convert();
+            })).map(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Versions::convert).orElse(null);
     }
 
     @Put(Champion.class)
