@@ -36,6 +36,7 @@ import com.merakianalytics.datapipelines.sinks.Put;
 import com.merakianalytics.datapipelines.sinks.PutMany;
 import com.merakianalytics.datapipelines.sources.Get;
 import com.merakianalytics.datapipelines.sources.GetMany;
+import com.merakianalytics.orianna.datapipeline.common.QueryValidationException;
 import com.merakianalytics.orianna.datapipeline.common.Utilities;
 import com.merakianalytics.orianna.datapipeline.common.expiration.ExpirationPeriod;
 import com.merakianalytics.orianna.types.common.OriannaException;
@@ -385,9 +386,19 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
             if(leagueId == null) {
                 if(tier == null || queue == null) {
-                    throw new IllegalArgumentException("Query was missing required parameters! Either leagueId or tier and queue must be included!");
-                } else if(!LEAGUE_LIST_ENDPOINTS.contains(tier) || !Queue.RANKED.contains(queue)) {
-                    return null;
+                    throw new QueryValidationException("Query was missing required parameters! Either leagueId or tier and queue must be included!");
+                } else if(!LEAGUE_LIST_ENDPOINTS.contains(tier)) {
+                    final StringBuilder sb = new StringBuilder();
+                    for(final Tier t : LEAGUE_LIST_ENDPOINTS) {
+                        sb.append(", " + t);
+                    }
+                    throw new QueryValidationException("Query contained invalid parameters! tier must be one of [" + sb.substring(2) + "]!");
+                } else if(!Queue.RANKED.contains(queue)) {
+                    final StringBuilder sb = new StringBuilder();
+                    for(final Queue qu : Queue.RANKED) {
+                        sb.append(", " + qu);
+                    }
+                    throw new QueryValidationException("Query contained invalid parameters! queue must be one of [" + sb.substring(2) + "]!");
                 }
             }
 
@@ -650,9 +661,13 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
             if(leagueIds == null) {
                 if(tier == null || queues == null) {
-                    throw new IllegalArgumentException("Query was missing required parameters! Either leagueIds or tier and queues must be included!");
+                    throw new QueryValidationException("Query was missing required parameters! Either leagueIds or tier and queues must be included!");
                 } else if(!LEAGUE_LIST_ENDPOINTS.contains(tier)) {
-                    return null;
+                    final StringBuilder sb = new StringBuilder();
+                    for(final Tier t : LEAGUE_LIST_ENDPOINTS) {
+                        sb.append(", " + t);
+                    }
+                    throw new QueryValidationException("Query contained invalid parameters! tier must be one of [" + sb.substring(2) + "]!");
                 }
             }
 
