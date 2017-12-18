@@ -16,11 +16,12 @@ import com.mongodb.async.client.MongoIterable;
 
 public class FindResultIterator<T> implements CloseableIterator<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(FindResultIterator.class);
+    private final long count;
     private final AsyncBatchCursor<T> cursor;
     private boolean empty = false;
     private final BlockingQueue<T> queue = new LinkedBlockingQueue<>();
 
-    public FindResultIterator(final MongoIterable<T> result) {
+    public FindResultIterator(final MongoIterable<T> result, final long count) {
         final CompletableFuture<AsyncBatchCursor<T>> future = new CompletableFuture<>();
         result.batchCursor((final AsyncBatchCursor<T> cursor, final Throwable exception) -> {
             if(exception != null) {
@@ -36,12 +37,18 @@ public class FindResultIterator<T> implements CloseableIterator<T> {
             LOGGER.error("Error on MongoDB query!", e);
             throw new OriannaException("Error on MongoDB query!", e);
         }
+
+        this.count = count;
     }
 
     @Override
     public void close() {
         cursor.close();
         queue.clear();
+    }
+
+    public long getCount() {
+        return count;
     }
 
     @Override

@@ -34,8 +34,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.merakianalytics.datapipelines.AbstractDataStore;
-import com.merakianalytics.datapipelines.iterators.CloseableIterator;
-import com.merakianalytics.datapipelines.iterators.CloseableIterators;
 import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration.ConnectionPoolConfiguration;
 import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration.SSLConfiguration;
 import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration.ServerConfiguration;
@@ -876,7 +874,8 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
             }
         }
 
-        builder.clusterSettings(ClusterSettings.builder().hosts(Lists.newArrayList(new ServerAddress(config.getHost(), config.getPort()))).mode(ClusterConnectionMode.SINGLE).build());
+        builder.clusterSettings(ClusterSettings.builder().hosts(Lists.newArrayList(new ServerAddress(config.getHost(), config.getPort())))
+            .mode(ClusterConnectionMode.SINGLE).build());
 
         if(config.getConnectionPool() != null) {
             final ConnectionPoolConfiguration conf = config.getConnectionPool();
@@ -1018,53 +1017,52 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         mongo.close();
     }
 
-    protected <T> CloseableIterator<T> find(final Class<T> clazz) {
-        return find(clazz, null, null);
+    protected <T> FindResultIterator<T> find(final Class<T> clazz) {
+        return find(clazz, (Bson)null);
     }
 
-    protected <T> CloseableIterator<T> find(final Class<T> clazz, final Map<String, Object> query,
-        final Function<Map<String, Object>, FindQuery> find) {
+    protected <T> FindResultIterator<T> find(final Class<T> clazz, final Bson filter) {
+        final MongoCollection<T> collection = getCollection(clazz);
+        final CompletableFuture<FindResultIterator<T>> future = new CompletableFuture<>();
+        collection.count((final Long count, final Throwable exception) -> {
+            if(exception != null) {
+                future.completeExceptionally(exception);
+            } else if(0L == count) {
+                future.complete(null);
+            } else {
+                future.complete(new FindResultIterator<>(filter == null ? collection.find() : collection.find(filter), count));
+            }
+        });
+        try {
+            return future.get();
+        } catch(InterruptedException | ExecutionException e) {
+            LOGGER.error("Error on MongoDB query!", e);
+            throw new OriannaException("Error on MongoDB query!", e);
+        }
+    }
+
+    protected <T> FindResultIterator<T> find(final Class<T> clazz, final FindQuery find) {
         final MongoCollection<T> collection = getCollection(clazz);
 
-        if(find == null || query == null) {
-            final CompletableFuture<FindResultIterator<T>> future = new CompletableFuture<>();
-            collection.count((final Long count, final Throwable exception) -> {
-                if(exception != null) {
-                    future.completeExceptionally(exception);
-                } else if(0L == count) {
-                    future.complete(null);
-                } else {
-                    future.complete(new FindResultIterator<>(collection.find()));
-                }
-            });
-            try {
-                return future.get();
-            } catch(InterruptedException | ExecutionException e) {
-                LOGGER.error("Error on MongoDB query!", e);
-                throw new OriannaException("Error on MongoDB query!", e);
-            }
-        }
-
-        final FindQuery findQuery = find.apply(query);
-        if(findQuery == null) {
-            return CloseableIterators.empty();
+        if(find == null) {
+            return find(clazz, (Bson)null);
         }
 
         final CompletableFuture<FindResultIterator<T>> future = new CompletableFuture<>();
-        collection.count(findQuery.getFilter(), (final Long count, final Throwable exception) -> {
+        collection.count(find.getFilter(), (final Long count, final Throwable exception) -> {
             if(exception != null) {
                 future.completeExceptionally(exception);
-            } else if(findQuery.getOrder().size() > count) {
+            } else if(find.getOrder().size() > count) {
                 future.complete(null);
             } else {
                 final AggregateIterable<T> result = collection.aggregate(Lists.newArrayList(
-                    match(findQuery.getFilter()),
+                    match(find.getFilter()),
                     addFields(new Field<Bson>("__order",
                         new BsonDocument("$indexOfArray",
-                            new BsonArray(Lists.newArrayList(new BsonArray(findQuery.getOrder()), new BsonString("$" + findQuery.getOrderingField())))))),
+                            new BsonArray(Lists.newArrayList(new BsonArray(find.getOrder()), new BsonString("$" + find.getOrderingField())))))),
                     sort(ascending("__order"))));
 
-                future.complete(new FindResultIterator<>(result));
+                future.complete(new FindResultIterator<>(result, count));
             }
         });
         try {
@@ -1076,12 +1074,12 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
     }
 
     protected <T> T findFirst(final Class<T> clazz) {
-        return findFirst(clazz, null, null);
+        return findFirst(clazz, null);
     }
 
-    protected <T> T findFirst(final Class<T> clazz, final Map<String, Object> query, final Function<Map<String, Object>, Bson> filter) {
+    protected <T> T findFirst(final Class<T> clazz, final Bson filter) {
         final MongoCollection<T> collection = getCollection(clazz);
-        final FindIterable<T> find = filter == null || query == null ? collection.find() : collection.find(filter.apply(query));
+        final FindIterable<T> find = filter == null ? collection.find() : collection.find(filter);
 
         final CompletableFuture<T> future = new CompletableFuture<>();
         find.first((final T result, final Throwable exception) -> {
@@ -1141,9 +1139,9 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         });
     }
 
-    protected <T> void upsert(final Class<T> clazz, final T object, final Function<T, Bson> filter) {
+    protected <T> void upsert(final Class<T> clazz, final T object, final Bson filter) {
         final MongoCollection<T> collection = getCollection(clazz);
-        collection.replaceOne(filter.apply(object), object, UPDATE_OPTIONS, (final UpdateResult result, final Throwable exception) -> {
+        collection.replaceOne(filter, object, UPDATE_OPTIONS, (final UpdateResult result, final Throwable exception) -> {
             if(exception != null) {
                 LOGGER.error("Error upserting to MongoDB!", exception);
                 throw new OriannaException("Error upserting to MongoDB!", exception);
