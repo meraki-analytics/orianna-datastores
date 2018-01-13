@@ -79,19 +79,19 @@ import com.mongodb.client.model.IndexOptions;
 public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore {
     public static class Configuration extends com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration {
         private static final Map<String, ExpirationPeriod> DEFAULT_EXPIRATION_PERIODS = ImmutableMap.<String, ExpirationPeriod> builder()
-            .put(com.merakianalytics.orianna.types.dto.champion.Champion.class.getCanonicalName(), ExpirationPeriod.create(6, TimeUnit.HOURS))
-            .put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class.getCanonicalName(), ExpirationPeriod.create(6, TimeUnit.HOURS))
-            .put(ChampionMastery.class.getCanonicalName(), ExpirationPeriod.create(2, TimeUnit.HOURS))
-            .put(ChampionMasteries.class.getCanonicalName(), ExpirationPeriod.create(2, TimeUnit.HOURS))
-            .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2, TimeUnit.HOURS))
-            .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(45, TimeUnit.MINUTES))
-            .put(SummonerPositions.class.getCanonicalName(), ExpirationPeriod.create(2, TimeUnit.HOURS))
-            .put(CurrentGameInfo.class.getCanonicalName(), ExpirationPeriod.create(5, TimeUnit.MINUTES))
-            .put(FeaturedGames.class.getCanonicalName(), ExpirationPeriod.create(5, TimeUnit.MINUTES))
-            .put(Realm.class.getCanonicalName(), ExpirationPeriod.create(6, TimeUnit.HOURS))
-            .put(Versions.class.getCanonicalName(), ExpirationPeriod.create(6, TimeUnit.HOURS))
-            .put(ShardStatus.class.getCanonicalName(), ExpirationPeriod.create(15, TimeUnit.MINUTES))
-            .put(Summoner.class.getCanonicalName(), ExpirationPeriod.create(12, TimeUnit.HOURS))
+            .put(com.merakianalytics.orianna.types.dto.champion.Champion.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
+            .put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
+            .put(ChampionMastery.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
+            .put(ChampionMasteries.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
+            .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
+            .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(45L, TimeUnit.MINUTES))
+            .put(SummonerPositions.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
+            .put(CurrentGameInfo.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
+            .put(FeaturedGames.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
+            .put(Realm.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
+            .put(Versions.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
+            .put(ShardStatus.class.getCanonicalName(), ExpirationPeriod.create(15L, TimeUnit.MINUTES))
+            .put(Summoner.class.getCanonicalName(), ExpirationPeriod.create(12L, TimeUnit.HOURS))
             .build();
 
         private Map<String, ExpirationPeriod> expirationPeriods = DEFAULT_EXPIRATION_PERIODS;
