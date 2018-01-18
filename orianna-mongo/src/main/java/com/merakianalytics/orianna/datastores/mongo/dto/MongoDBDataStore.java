@@ -8,6 +8,7 @@ import static com.mongodb.client.model.Indexes.compoundIndex;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +30,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.merakianalytics.datapipelines.PipelineContext;
 import com.merakianalytics.datapipelines.iterators.CloseableIterator;
 import com.merakianalytics.datapipelines.iterators.CloseableIterators;
@@ -61,9 +63,11 @@ import com.merakianalytics.orianna.types.dto.staticdata.ItemList;
 import com.merakianalytics.orianna.types.dto.staticdata.LanguageStrings;
 import com.merakianalytics.orianna.types.dto.staticdata.Languages;
 import com.merakianalytics.orianna.types.dto.staticdata.MapData;
+import com.merakianalytics.orianna.types.dto.staticdata.MapDetails;
 import com.merakianalytics.orianna.types.dto.staticdata.Mastery;
 import com.merakianalytics.orianna.types.dto.staticdata.MasteryList;
 import com.merakianalytics.orianna.types.dto.staticdata.ProfileIconData;
+import com.merakianalytics.orianna.types.dto.staticdata.ProfileIconDetails;
 import com.merakianalytics.orianna.types.dto.staticdata.Realm;
 import com.merakianalytics.orianna.types.dto.staticdata.Rune;
 import com.merakianalytics.orianna.types.dto.staticdata.RuneList;
@@ -72,6 +76,7 @@ import com.merakianalytics.orianna.types.dto.staticdata.SummonerSpellList;
 import com.merakianalytics.orianna.types.dto.staticdata.Versions;
 import com.merakianalytics.orianna.types.dto.status.ShardStatus;
 import com.merakianalytics.orianna.types.dto.summoner.Summoner;
+import com.merakianalytics.orianna.types.dto.thirdpartycode.VerificationString;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
@@ -84,14 +89,35 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ChampionMastery.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteries.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
-            .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(45L, TimeUnit.MINUTES))
+            .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(30L, TimeUnit.MINUTES))
             .put(SummonerPositions.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
+            .put(Match.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            // TODO: Matchlist
+            .put(MatchTimeline.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(TournamentMatches.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
             .put(CurrentGameInfo.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
             .put(FeaturedGames.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
+            .put(Champion.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(ChampionList.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(Item.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(ItemList.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(Languages.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(LanguageStrings.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(MapData.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(MapDetails.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(Mastery.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(MasteryList.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(ProfileIconData.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(ProfileIconDetails.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
             .put(Realm.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
+            .put(Rune.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(RuneList.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(SummonerSpell.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(SummonerSpellList.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
             .put(Versions.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(ShardStatus.class.getCanonicalName(), ExpirationPeriod.create(15L, TimeUnit.MINUTES))
-            .put(Summoner.class.getCanonicalName(), ExpirationPeriod.create(12L, TimeUnit.HOURS))
+            .put(Summoner.class.getCanonicalName(), ExpirationPeriod.create(1L, TimeUnit.DAYS))
+            .put(VerificationString.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
             .build();
 
         private Map<String, ExpirationPeriod> expirationPeriods = DEFAULT_EXPIRATION_PERIODS;
@@ -120,16 +146,19 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         return realm.getV();
     }
 
+    private final Map<String, ExpirationPeriod> expirationPeriods;
+
     public MongoDBDataStore() {
         this(new Configuration());
     }
 
     public MongoDBDataStore(final Configuration config) {
         super(config);
-        ensureIndexes(config);
+        expirationPeriods = config.getExpirationPeriods();
+        ensureIndexes();
     }
 
-    private void ensureIndexes(final Configuration config) {
+    private void ensureIndexes() {
         final Map<Class<?>, String[]> compositeKeys = ImmutableMap.<Class<?>, String[]> builder()
             .put(com.merakianalytics.orianna.types.dto.champion.Champion.class, new String[] {"platform", "id"})
             .put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, new String[] {"platform", "freeToPlay"})
@@ -151,9 +180,11 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(Languages.class, new String[] {"platform"})
             .put(LanguageStrings.class, new String[] {"platform", "version", "locale"})
             .put(MapData.class, new String[] {"platform", "version", "locale"})
+            .put(MapDetails.class, new String[] {"platform", "mapId", "version", "locale"})
             .put(Mastery.class, new String[] {"platform", "id", "version", "locale", "includedData"})
             .put(MasteryList.class, new String[] {"platform", "version", "locale", "includedData"})
             .put(ProfileIconData.class, new String[] {"platform", "version", "locale"})
+            .put(ProfileIconDetails.class, new String[] {"platform", "id", "version", "locale"})
             .put(Realm.class, new String[] {"platform"})
             .put(Rune.class, new String[] {"platform", "id", "version", "locale", "includedData"})
             .put(RuneList.class, new String[] {"platform", "version", "locale", "includedData"})
@@ -162,6 +193,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(Versions.class, new String[] {"platform"})
             .put(ShardStatus.class, new String[] {"platform"})
             .put(Summoner.class, new String[] {"platform", "id"})
+            .put(VerificationString.class, new String[] {"platform", "summonerId"})
             .build();
 
         for(final Class<?> clazz : compositeKeys.keySet()) {
@@ -173,8 +205,8 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
             List<IndexModel> indexes;
 
-            final ExpirationPeriod period = config.getExpirationPeriods().get(clazz.getCanonicalName());
-            if(period != null) {
+            final ExpirationPeriod period = expirationPeriods.get(clazz.getCanonicalName());
+            if(period != null && period.getPeriod() > 0) {
                 final IndexModel expiration =
                     new IndexModel(ascending(AddUpdatedTimestamp.FIELD_NAME), new IndexOptions().expireAfter(period.getPeriod(), period.getUnit()));
                 indexes = Lists.newArrayList(compositeKey, expiration);
@@ -799,7 +831,48 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         final Bson filter = and(eq("platform", platform), in("version", versions), eq("locale", locale));
         final FindQuery find = FindQuery.builder().filter(filter).order(versions).orderingField("version").build();
 
-        return find(MapData.class, find);
+        final FindResultIterator<com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.MapData> results =
+            find(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.MapData.class, find);
+
+        if(results == null) {
+            return null;
+        }
+
+        return CloseableIterators.transform(results, (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.MapData result) -> {
+            try(FindResultIterator<MapDetails> maps = find(MapDetails.class, filter)) {
+                final MapData data = result.convert((int)maps.getCount());
+                while(maps.hasNext()) {
+                    final MapDetails map = maps.next();
+                    data.getData().put(Long.toString(map.getMapId()), map);
+                }
+                return data;
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(MapDetails.class)
+    public CloseableIterator<MapDetails> getManyMapDetails(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+        final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
+        final Iterable<String> names = (Iterable<String>)query.get("names");
+        Utilities.checkAtLeastOneNotNull(ids, "ids", names, "names");
+        final String version = query.get("version") == null ? getCurrentVersion(platform, context) : (String)query.get("version");
+        final String locale = query.get("locale") == null ? platform.getDefaultLocale() : (String)query.get("locale");
+
+        final FindQuery find;
+        if(ids != null) {
+            final List<BsonNumber> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+            final Bson filter = and(eq("platform", platform.getTag()), in("mapId", order), eq("version", version), eq("locale", locale));
+            find = FindQuery.builder().filter(filter).order(order).orderingField("mapId").build();
+        } else {
+            final List<BsonString> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+            final Bson filter = and(eq("platform", platform.getTag()), in("name", order), eq("version", version), eq("locale", locale));
+            find = FindQuery.builder().filter(filter).order(order).orderingField("name").build();
+        }
+
+        return find(MapDetails.class, find);
     }
 
     @SuppressWarnings("unchecked")
@@ -910,7 +983,39 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         final Bson filter = and(eq("platform", platform), in("version", versions), eq("locale", locale));
         final FindQuery find = FindQuery.builder().filter(filter).order(versions).orderingField("version").build();
 
-        return find(ProfileIconData.class, find);
+        final FindResultIterator<com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData> results =
+            find(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData.class, find);
+
+        if(results == null) {
+            return null;
+        }
+
+        return CloseableIterators.transform(results, (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData result) -> {
+            try(FindResultIterator<ProfileIconDetails> icons = find(ProfileIconDetails.class, filter)) {
+                final ProfileIconData data = result.convert((int)icons.getCount());
+                while(icons.hasNext()) {
+                    final ProfileIconDetails icon = icons.next();
+                    data.getData().put(Long.toString(icon.getId()), icon);
+                }
+                return data;
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(ProfileIconDetails.class)
+    public CloseableIterator<ProfileIconDetails> getManyProfileIconDetails(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
+        Utilities.checkNotNull(platform, "platform", ids, "ids");
+        final String version = query.get("version") == null ? getCurrentVersion(platform, context) : (String)query.get("version");
+        final String locale = query.get("locale") == null ? platform.getDefaultLocale() : (String)query.get("locale");
+
+        final List<BsonNumber> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+        final Bson filter = and(eq("platform", platform.getTag()), in("id", order), eq("version", version), eq("locale", locale));
+        final FindQuery find = FindQuery.builder().filter(filter).order(order).orderingField("id").build();
+
+        return find(ProfileIconDetails.class, find);
     }
 
     @SuppressWarnings("unchecked")
@@ -1132,6 +1237,20 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     }
 
     @SuppressWarnings("unchecked")
+    @GetMany(VerificationString.class)
+    public CloseableIterator<VerificationString> getManyVerificationString(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
+        Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
+
+        final List<BsonNumber> summonerIds = numbersToBson(iter);
+        final Bson filter = and(eq("platform", platform), in("summonerId", summonerIds));
+        final FindQuery find = FindQuery.builder().filter(filter).order(summonerIds).orderingField("summonerId").build();
+
+        return find(VerificationString.class, find);
+    }
+
+    @SuppressWarnings("unchecked")
     @GetMany(Versions.class)
     public CloseableIterator<Versions> getManyVersions(final Map<String, Object> query, final PipelineContext context) {
         final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
@@ -1161,7 +1280,41 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
         final Bson filter = and(eq("platform", platform.getTag()), eq("version", version), eq("locale", locale));
 
-        return findFirst(MapData.class, filter);
+        final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.MapData result =
+            findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.MapData.class, filter);
+
+        if(result == null) {
+            return null;
+        }
+
+        try(FindResultIterator<MapDetails> maps = find(MapDetails.class, filter)) {
+            final MapData data = result.convert((int)maps.getCount());
+            while(maps.hasNext()) {
+                final MapDetails map = maps.next();
+                data.getData().put(Long.toString(map.getMapId()), map);
+            }
+            return data;
+        }
+    }
+
+    @Get(MapDetails.class)
+    public MapDetails getMapDetails(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+        final Number id = (Number)query.get("id");
+        final String name = (String)query.get("name");
+        Utilities.checkAtLeastOneNotNull(id, "id", name, "name");
+        final String version = query.get("version") == null ? getCurrentVersion(platform, context) : (String)query.get("version");
+        final String locale = query.get("locale") == null ? platform.getDefaultLocale() : (String)query.get("locale");
+
+        final Bson filter;
+        if(id != null) {
+            filter = and(eq("platform", platform.getTag()), eq("mapId", id), eq("version", version), eq("locale", locale));
+        } else {
+            filter = and(eq("platform", platform.getTag()), eq("name", name), eq("version", version), eq("locale", locale));
+        }
+
+        return findFirst(MapDetails.class, filter);
     }
 
     @SuppressWarnings("unchecked")
@@ -1251,7 +1404,34 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
         final Bson filter = and(eq("platform", platform.getTag()), eq("version", version), eq("locale", locale));
 
-        return findFirst(ProfileIconData.class, filter);
+        final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData result =
+            findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData.class, filter);
+
+        if(result == null) {
+            return null;
+        }
+
+        try(FindResultIterator<ProfileIconDetails> icons = find(ProfileIconDetails.class, filter)) {
+            final ProfileIconData data = result.convert((int)icons.getCount());
+            while(icons.hasNext()) {
+                final ProfileIconDetails icon = icons.next();
+                data.getData().put(Long.toString(icon.getId()), icon);
+            }
+            return data;
+        }
+    }
+
+    @Get(ProfileIconDetails.class)
+    public ProfileIconDetails getProfileIconDetails(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Number id = (Number)query.get("id");
+        Utilities.checkNotNull(platform, "platform", id, "id");
+        final String version = query.get("version") == null ? getCurrentVersion(platform, context) : (String)query.get("version");
+        final String locale = query.get("locale") == null ? platform.getDefaultLocale() : (String)query.get("locale");
+
+        final Bson filter = and(eq("platform", platform.getTag()), eq("id", id), eq("version", version), eq("locale", locale));
+
+        return findFirst(ProfileIconDetails.class, filter);
     }
 
     @Get(Realm.class)
@@ -1419,6 +1599,15 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .map(com.merakianalytics.orianna.datastores.mongo.proxies.dto.match.TournamentMatches::convert).orElse(null);
     }
 
+    @Get(VerificationString.class)
+    public VerificationString getVerificationString(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Number summonerId = (Number)query.get("summonerId");
+        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
+
+        return findFirst(VerificationString.class, and(eq("platform", platform.getTag()), eq("summonerId", summonerId)));
+    }
+
     @Get(Versions.class)
     public Versions getVersions(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -1428,6 +1617,32 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
         return Optional.ofNullable(findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Versions.class, filter))
             .map(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Versions::convert).orElse(null);
+    }
+
+    @Override
+    protected Set<Class<?>> ignore() {
+        final Set<String> included = new HashSet<>();
+        for(final String name : expirationPeriods.keySet()) {
+            if(expirationPeriods.get(name).getPeriod() != 0) {
+                included.add(name);
+            }
+        }
+
+        final Set<String> names = Sets.difference(Configuration.DEFAULT_EXPIRATION_PERIODS.keySet(), included);
+        if(names.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        final Set<Class<?>> ignore = new HashSet<>();
+        for(final String name : names) {
+            try {
+                ignore.add(Class.forName(name));
+            } catch(final ClassNotFoundException e) {
+                LOGGER.error("Failed to find class for name " + name + "!", e);
+                throw new OriannaException("Failed to find class for name " + name + "! Report this to the orianna team.", e);
+            }
+        }
+        return ignore;
     }
 
     @Put(Champion.class)
@@ -1642,8 +1857,20 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @PutMany(MapData.class)
     public void putManyMapData(final Iterable<MapData> d, final PipelineContext context) {
-        upsert(MapData.class, d, (final MapData data) -> {
-            return and(eq("platform", data.getPlatform()), eq("locale", data.getLocale()), eq("version", data.getVersion()));
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.MapData.class,
+            Iterables.transform(d, com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.MapData::convert),
+            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.MapData data) -> {
+                return and(eq("platform", data.getPlatform()), eq("version", data.getVersion()), eq("locale", data.getLocale()));
+            });
+        putManyMapDetails(
+            Iterables.concat(StreamSupport.stream(d.spliterator(), false).map((final MapData data) -> data.getData().values()).collect(Collectors.toList())),
+            context);
+    }
+
+    @PutMany(MapDetails.class)
+    public void putManyMapDetails(final Iterable<MapDetails> m, final PipelineContext context) {
+        upsert(MapDetails.class, m, (final MapDetails map) -> {
+            return and(eq("platform", map.getPlatform()), eq("mapId", map.getMapId()), eq("version", map.getVersion()), eq("locale", map.getLocale()));
         });
     }
 
@@ -1685,8 +1912,21 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @PutMany(ProfileIconData.class)
     public void putManyProfileIconData(final Iterable<ProfileIconData> d, final PipelineContext context) {
-        upsert(ProfileIconData.class, d, (final ProfileIconData data) -> {
-            return and(eq("platform", data.getPlatform()), eq("locale", data.getLocale()), eq("version", data.getVersion()));
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData.class,
+            Iterables.transform(d, com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData::convert),
+            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData data) -> {
+                return and(eq("platform", data.getPlatform()), eq("version", data.getVersion()), eq("locale", data.getLocale()));
+            });
+        putManyProfileIconDetails(
+            Iterables
+                .concat(StreamSupport.stream(d.spliterator(), false).map((final ProfileIconData data) -> data.getData().values()).collect(Collectors.toList())),
+            context);
+    }
+
+    @PutMany(ProfileIconDetails.class)
+    public void putManyProfileIconDetails(final Iterable<ProfileIconDetails> i, final PipelineContext context) {
+        upsert(ProfileIconDetails.class, i, (final ProfileIconDetails icon) -> {
+            return and(eq("platform", icon.getPlatform()), eq("id", icon.getId()), eq("version", icon.getVersion()), eq("locale", icon.getLocale()));
         });
     }
 
@@ -1772,6 +2012,13 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             });
     }
 
+    @PutMany(VerificationString.class)
+    public void putManyVerificationString(final Iterable<VerificationString> s, final PipelineContext context) {
+        upsert(VerificationString.class, s, (final VerificationString string) -> {
+            return and(eq("platform", string.getPlatform()), eq("summonerId", string.getSummonerId()));
+        });
+    }
+
     @PutMany(Versions.class)
     public void putManyVersions(final Iterable<Versions> v, final PipelineContext context) {
         upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Versions.class,
@@ -1783,7 +2030,16 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @Put(MapData.class)
     public void putMapData(final MapData data, final PipelineContext context) {
-        upsert(MapData.class, data, and(eq("platform", data.getPlatform()), eq("locale", data.getLocale()), eq("version", data.getVersion())));
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.MapData.class,
+            com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.MapData.convert(data),
+            and(eq("platform", data.getPlatform()), eq("version", data.getVersion()), eq("locale", data.getLocale())));
+        putManyMapDetails(data.getData().values(), context);
+    }
+
+    @Put(MapDetails.class)
+    public void putMapDetails(final MapDetails map, final PipelineContext context) {
+        upsert(MapDetails.class, map,
+            and(eq("platform", map.getPlatform()), eq("mapId", map.getMapId()), eq("icon", map.getVersion()), eq("locale", map.getLocale())));
     }
 
     @Put(Mastery.class)
@@ -1812,7 +2068,16 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @Put(ProfileIconData.class)
     public void putProfileIconData(final ProfileIconData data, final PipelineContext context) {
-        upsert(ProfileIconData.class, data, and(eq("platform", data.getPlatform()), eq("locale", data.getLocale()), eq("version", data.getVersion())));
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData.class,
+            com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData.convert(data),
+            and(eq("platform", data.getPlatform()), eq("version", data.getVersion()), eq("locale", data.getLocale())));
+        putManyProfileIconDetails(data.getData().values(), context);
+    }
+
+    @Put(ProfileIconDetails.class)
+    public void putProfileIconDetails(final ProfileIconDetails icon, final PipelineContext context) {
+        upsert(ProfileIconDetails.class, icon,
+            and(eq("platform", icon.getPlatform()), eq("id", icon.getId()), eq("icon", icon.getVersion()), eq("locale", icon.getLocale())));
     }
 
     @Put(Realm.class)
@@ -1870,6 +2135,11 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.match.TournamentMatches.class,
             com.merakianalytics.orianna.datastores.mongo.proxies.dto.match.TournamentMatches.convert(matches),
             and(eq("platform", matches.getPlatform()), eq("tournamentCode", matches.getTournamentCode())));
+    }
+
+    @Put(VerificationString.class)
+    public void putVerificationString(final VerificationString string, final PipelineContext context) {
+        upsert(VerificationString.class, string, and(eq("platform", string.getPlatform()), eq("summonerId", string.getSummonerId())));
     }
 
     @Put(Versions.class)
