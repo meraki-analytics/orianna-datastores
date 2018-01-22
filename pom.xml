@@ -7,6 +7,10 @@
 	<artifactId>datastores-parent</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
+	
+	<name>orianna-datastores</name>
+	<description>Popular database support for orianna</description>
+	<url>https://github.com/meraki-analytics/orianna-datastores</url>
 
 	<modules>
 		<module>orianna-mongo</module>
