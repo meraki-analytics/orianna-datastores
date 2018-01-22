@@ -8,6 +8,7 @@ import static com.mongodb.client.model.Indexes.compoundIndex;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,10 @@ import com.merakianalytics.orianna.types.dto.staticdata.MasteryList;
 import com.merakianalytics.orianna.types.dto.staticdata.ProfileIconData;
 import com.merakianalytics.orianna.types.dto.staticdata.ProfileIconDetails;
 import com.merakianalytics.orianna.types.dto.staticdata.Realm;
+import com.merakianalytics.orianna.types.dto.staticdata.ReforgedRune;
+import com.merakianalytics.orianna.types.dto.staticdata.ReforgedRunePath;
+import com.merakianalytics.orianna.types.dto.staticdata.ReforgedRuneSlot;
+import com.merakianalytics.orianna.types.dto.staticdata.ReforgedRuneTree;
 import com.merakianalytics.orianna.types.dto.staticdata.Rune;
 import com.merakianalytics.orianna.types.dto.staticdata.RuneList;
 import com.merakianalytics.orianna.types.dto.staticdata.SummonerSpell;
@@ -83,6 +88,8 @@ import com.mongodb.client.model.IndexOptions;
 
 public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore {
     public static class Configuration extends com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration {
+        private static final Long DEFAULT_ETERNAL_PERIOD = -1L;
+        private static final TimeUnit DEFAULT_ETERNAL_UNIT = TimeUnit.DAYS;
         private static final Map<String, ExpirationPeriod> DEFAULT_EXPIRATION_PERIODS = ImmutableMap.<String, ExpirationPeriod> builder()
             .put(com.merakianalytics.orianna.types.dto.champion.Champion.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
@@ -91,29 +98,31 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(30L, TimeUnit.MINUTES))
             .put(SummonerPositions.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
-            .put(Match.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(Match.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             // TODO: Matchlist
-            .put(MatchTimeline.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(TournamentMatches.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(MatchTimeline.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(TournamentMatches.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(CurrentGameInfo.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
             .put(FeaturedGames.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
-            .put(Champion.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(ChampionList.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(Item.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(ItemList.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(Languages.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(LanguageStrings.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(MapData.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(MapDetails.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(Mastery.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(MasteryList.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(ProfileIconData.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(ProfileIconDetails.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(Champion.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(ChampionList.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Item.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(ItemList.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Languages.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(LanguageStrings.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(MapData.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(MapDetails.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Mastery.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(MasteryList.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(ProfileIconData.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(ProfileIconDetails.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(ReforgedRune.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(ReforgedRuneTree.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(Realm.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
-            .put(Rune.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(RuneList.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(SummonerSpell.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
-            .put(SummonerSpellList.class.getCanonicalName(), ExpirationPeriod.create(-1L, TimeUnit.DAYS))
+            .put(Rune.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(RuneList.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(SummonerSpell.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(SummonerSpellList.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(Versions.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(ShardStatus.class.getCanonicalName(), ExpirationPeriod.create(15L, TimeUnit.MINUTES))
             .put(Summoner.class.getCanonicalName(), ExpirationPeriod.create(1L, TimeUnit.DAYS))
@@ -186,6 +195,8 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ProfileIconData.class, new String[] {"platform", "version", "locale"})
             .put(ProfileIconDetails.class, new String[] {"platform", "id", "version", "locale"})
             .put(Realm.class, new String[] {"platform"})
+            .put(ReforgedRune.class, new String[] {"platform", "id", "version", "locale"})
+            .put(ReforgedRuneTree.class, new String[] {"platform", "version", "locale"})
             .put(Rune.class, new String[] {"platform", "id", "version", "locale", "includedData"})
             .put(RuneList.class, new String[] {"platform", "version", "locale", "includedData"})
             .put(SummonerSpell.class, new String[] {"platform", "id", "version", "locale", "includedData"})
@@ -531,7 +542,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
         final List<BsonString> versions = StreamSupport.stream(iter.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
         final Bson filter =
-            and(eq("platform", platform), in("version", versions), eq("locale", locale), eq("includedData", includedData), eq("dataById", dataById));
+            and(eq("platform", platform), in("version", versions), eq("locale", locale), eq("includedData", includedData));
         final FindQuery find = FindQuery.builder().filter(filter).order(versions).orderingField("version").build();
 
         final FindResultIterator<com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ChampionList> results =
@@ -1033,6 +1044,83 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     }
 
     @SuppressWarnings("unchecked")
+    @GetMany(ReforgedRune.class)
+    public CloseableIterator<ReforgedRune> getManyReforgedRune(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+        final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
+        final Iterable<String> names = (Iterable<String>)query.get("names");
+        final Iterable<String> keys = (Iterable<String>)query.get("keys");
+        Utilities.checkAtLeastOneNotNull(ids, "ids", names, "names", keys, "keys");
+        final String version = query.get("version") == null ? getCurrentVersion(platform, context) : (String)query.get("version");
+        final String locale = query.get("locale") == null ? platform.getDefaultLocale() : (String)query.get("locale");
+
+        final FindQuery find;
+        if(ids != null) {
+            final List<BsonNumber> order = StreamSupport.stream(ids.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+            final Bson filter =
+                and(eq("platform", platform.getTag()), in("id", order), eq("version", version), eq("locale", locale));
+            find = FindQuery.builder().filter(filter).order(order).orderingField("id").build();
+        } else if(names != null) {
+            final List<BsonString> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+            final Bson filter =
+                and(eq("platform", platform.getTag()), in("name", order), eq("version", version), eq("locale", locale));
+            find = FindQuery.builder().filter(filter).order(order).orderingField("name").build();
+        } else {
+            final List<BsonString> order = StreamSupport.stream(keys.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+            final Bson filter =
+                and(eq("platform", platform.getTag()), in("key", order), eq("version", version), eq("locale", locale));
+            find = FindQuery.builder().filter(filter).order(order).orderingField("key").build();
+        }
+
+        return find(ReforgedRune.class, find);
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(ReforgedRuneTree.class)
+    public CloseableIterator<ReforgedRuneTree> getManyReforgedRuneTree(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<String> iter = (Iterable<String>)query.get("versions");
+        Utilities.checkNotNull(platform, "platform", iter, "versions");
+        final String locale = query.get("locale") == null ? platform.getDefaultLocale() : (String)query.get("locale");
+
+        final List<BsonString> versions = StreamSupport.stream(iter.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+        final Bson filter =
+            and(eq("platform", platform), in("version", versions), eq("locale", locale));
+        final FindQuery find = FindQuery.builder().filter(filter).order(versions).orderingField("version").build();
+
+        final FindResultIterator<com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ReforgedRuneTree> results =
+            find(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ReforgedRuneTree.class, find);
+
+        if(results == null) {
+            return null;
+        }
+
+        return CloseableIterators.transform(results, (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ReforgedRuneTree result) -> {
+            try(FindResultIterator<ReforgedRune> runes = find(ReforgedRune.class, filter)) {
+                final ReforgedRuneTree tree = result.convert();
+                final Map<Integer, Map<Integer, ReforgedRuneSlot>> slots = new HashMap<>();
+                for(final ReforgedRunePath path : tree) {
+                    Map<Integer, ReforgedRuneSlot> forPath = slots.get(path.getId());
+                    if(forPath == null) {
+                        forPath = new HashMap<>();
+                        slots.put(path.getId(), forPath);
+                    }
+                    for(int i = 0; i < path.getSlots().size(); i++) {
+                        forPath.put(i, path.getSlots().get(i));
+                    }
+                }
+                while(runes.hasNext()) {
+                    final ReforgedRune rune = runes.next();
+                    final ReforgedRuneSlot slot = slots.get(rune.getPathId()).get(rune.getSlot());
+                    slot.getRunes().add(rune);
+                }
+                return tree;
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
     @GetMany(Rune.class)
     public CloseableIterator<Rune> getManyRune(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -1442,6 +1530,67 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         final Bson filter = eq("platform", platform.getTag());
 
         return findFirst(Realm.class, filter);
+    }
+
+    @Get(ReforgedRune.class)
+    public ReforgedRune getReforgedRune(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+        final Number id = (Number)query.get("id");
+        final String name = (String)query.get("name");
+        final String key = (String)query.get("key");
+        Utilities.checkAtLeastOneNotNull(id, "id", name, "name", key, "key");
+        final String version = query.get("version") == null ? getCurrentVersion(platform, context) : (String)query.get("version");
+        final String locale = query.get("locale") == null ? platform.getDefaultLocale() : (String)query.get("locale");
+
+        final Bson filter;
+        if(id != null) {
+            filter = and(eq("platform", platform.getTag()), eq("id", id), eq("version", version), eq("locale", locale));
+        } else if(name != null) {
+            filter = and(eq("platform", platform.getTag()), eq("name", name), eq("version", version), eq("locale", locale));
+        } else {
+            filter = and(eq("platform", platform.getTag()), eq("key", key), eq("version", version), eq("locale", locale));
+        }
+
+        return findFirst(ReforgedRune.class, filter);
+    }
+
+    @Get(ReforgedRuneTree.class)
+    public ReforgedRuneTree getReforgedRuneTree(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+        final String version = query.get("version") == null ? getCurrentVersion(platform, context) : (String)query.get("version");
+        final String locale = query.get("locale") == null ? platform.getDefaultLocale() : (String)query.get("locale");
+
+        final Bson filter = and(eq("platform", platform.getTag()), eq("version", version), eq("locale", locale));
+
+        final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ReforgedRuneTree result =
+            findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ReforgedRuneTree.class, filter);
+
+        if(result == null) {
+            return null;
+        }
+
+        try(FindResultIterator<ReforgedRune> runes = find(ReforgedRune.class, filter)) {
+            final ReforgedRuneTree tree = result.convert();
+            final Map<Integer, Map<Integer, ReforgedRuneSlot>> slots = new HashMap<>();
+            for(final ReforgedRunePath path : tree) {
+                Map<Integer, ReforgedRuneSlot> forPath = slots.get(path.getId());
+                if(forPath == null) {
+                    forPath = new HashMap<>();
+                    slots.put(path.getId(), forPath);
+                }
+                for(int i = 0; i < path.getSlots().size(); i++) {
+                    forPath.put(i, path.getSlots().get(i));
+                }
+            }
+            while(runes.hasNext()) {
+                final ReforgedRune rune = runes.next();
+                final ReforgedRuneSlot slot = slots.get(rune.getPathId()).get(rune.getSlot());
+                slot.getRunes().add(rune);
+            }
+            return tree;
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -1937,6 +2086,29 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         });
     }
 
+    @PutMany(ReforgedRune.class)
+    public void putManyReforgedRune(final Iterable<ReforgedRune> r, final PipelineContext context) {
+        upsert(ReforgedRune.class, r, (final ReforgedRune rune) -> {
+            return and(eq("platform", rune.getPlatform()), eq("id", rune.getId()), eq("version", rune.getVersion()), eq("locale", rune.getLocale()));
+        });
+    }
+
+    @PutMany(ReforgedRuneTree.class)
+    public void putManyReforgedRuneTree(final Iterable<ReforgedRuneTree> t, final PipelineContext context) {
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ReforgedRuneTree.class,
+            Iterables.transform(t, com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ReforgedRuneTree::convert),
+            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ReforgedRuneTree tree) -> {
+                return and(eq("platform", tree.getPlatform()), eq("version", tree.getVersion()), eq("locale", tree.getLocale()));
+            });
+        putManyReforgedRune(
+            Iterables.concat(
+                StreamSupport.stream(t.spliterator(), false)
+                    .map((final ReforgedRuneTree tree) -> tree.stream().map(ReforgedRunePath::getSlots).flatMap(List::stream).map(ReforgedRuneSlot::getRunes)
+                        .flatMap(List::stream).collect(Collectors.toList()))
+                    .collect(Collectors.toList())),
+            context);
+    }
+
     @PutMany(Rune.class)
     public void putManyRune(final Iterable<Rune> r, final PipelineContext context) {
         upsert(Rune.class, r, (final Rune rune) -> {
@@ -2083,6 +2255,22 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @Put(Realm.class)
     public void putRealm(final Realm realm, final PipelineContext context) {
         upsert(Realm.class, realm, eq("platform", realm.getPlatform()));
+    }
+
+    @Put(ReforgedRune.class)
+    public void putReforgedRune(final ReforgedRune rune, final PipelineContext context) {
+        upsert(ReforgedRune.class, rune, and(eq("platform", rune.getPlatform()), eq("id", rune.getId()), eq("version", rune.getVersion()),
+            eq("locale", rune.getLocale())));
+    }
+
+    @Put(ReforgedRuneTree.class)
+    public void putReforgedRuneTree(final ReforgedRuneTree tree, final PipelineContext context) {
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ReforgedRuneTree.class,
+            com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ReforgedRuneTree.convert(tree), and(eq("platform", tree.getPlatform()),
+                eq("version", tree.getVersion()), eq("locale", tree.getLocale())));
+        final List<ReforgedRune> runes = tree.stream().map(ReforgedRunePath::getSlots).flatMap(List::stream).map(ReforgedRuneSlot::getRunes)
+            .flatMap(List::stream).collect(Collectors.toList());
+        putManyReforgedRune(runes, context);
     }
 
     @Put(Rune.class)
