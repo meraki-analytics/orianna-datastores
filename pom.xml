@@ -7,7 +7,7 @@
 	<artifactId>datastores-parent</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	
+
 	<name>orianna-datastores</name>
 	<description>Popular database support for orianna</description>
 	<url>https://github.com/meraki-analytics/orianna-datastores</url>
@@ -56,15 +56,15 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.version>3.7.0</maven.compiler.version>
-		<maven.resources.version>3.0.2</maven.resources.version>
 		<maven.source.version>3.0.1</maven.source.version>
 		<maven.javadoc.version>3.0.0</maven.javadoc.version>
 		<maven.gpg.version>1.6</maven.gpg.version>
 		<maven.nexus.version>1.6.8</maven.nexus.version>
+		<maven.license.version>1.14</maven.license.version>
 		<slf4j.version>1.7.25</slf4j.version>
 		<junit.version>4.12</junit.version>
-		<datapipelines.version>1.0.1-SNAPSHOT</datapipelines.version>
-		<orianna.version>3.0.0-SNAPSHOT</orianna.version>
+		<datapipelines.version>1.0.2</datapipelines.version>
+		<orianna.version>3.0.0</orianna.version>
 	</properties>
 
 	<dependencyManagement>
@@ -177,6 +177,22 @@
 							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
 							<autoReleaseAfterClose>true</autoReleaseAfterClose>
 						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>license-maven-plugin</artifactId>
+						<version>${maven.license.version}</version>
+						<configuration>
+							<excludedScopes>system,test</excludedScopes>
+						</configuration>
+						<executions>
+							<execution>
+								<id>add-third-party</id>
+								<goals>
+									<goal>add-third-party</goal>
+								</goals>
+							</execution>
+						</executions>
 					</plugin>
 				</plugins>
 			</build>
