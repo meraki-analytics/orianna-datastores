@@ -14,6 +14,7 @@
 
 	<modules>
 		<module>orianna-mongo</module>
+		<module>orianna-xodus</module>
 	</modules>
 
 	<developers>

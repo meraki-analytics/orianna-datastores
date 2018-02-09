@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>com.merakianalytics.orianna.datastores</groupId>
+		<artifactId>datastores-parent</artifactId>
+		<version>1.0.2-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>xodus</artifactId>
+
+	<name>orianna-xodus</name>
+	<description>Xodus (https://github.com/JetBrains/xodus) support for orianna</description>
+	<url>https://github.com/meraki-analytics/orianna-datastores</url>
+
+	<properties>
+		<xodus.version>1.1.0</xodus.version>
+		<guava.version>20.0</guava.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.merakianalytics.datapipelines</groupId>
+			<artifactId>datapipelines</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.merakianalytics.orianna</groupId>
+			<artifactId>orianna</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.xodus</groupId>
+			<artifactId>xodus-openAPI</artifactId>
+			<version>${xodus.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jetbrains.xodus</groupId>
+			<artifactId>xodus-entity-store</artifactId>
+			<version>${xodus.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>${guava.version}</version>
+		</dependency>
+	</dependencies>
+</project>
