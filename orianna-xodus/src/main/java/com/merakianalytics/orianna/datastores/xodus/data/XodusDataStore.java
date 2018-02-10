@@ -1,4 +1,4 @@
-package com.merakianalytics.orianna.datastores.xodus.dto;
+package com.merakianalytics.orianna.datastores.xodus.data;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -33,42 +32,42 @@ import com.merakianalytics.orianna.types.common.OriannaException;
 import com.merakianalytics.orianna.types.common.Platform;
 import com.merakianalytics.orianna.types.common.Queue;
 import com.merakianalytics.orianna.types.common.Tier;
-import com.merakianalytics.orianna.types.dto.DataObject;
-import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries;
-import com.merakianalytics.orianna.types.dto.championmastery.ChampionMastery;
-import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteryScore;
-import com.merakianalytics.orianna.types.dto.league.LeagueList;
-import com.merakianalytics.orianna.types.dto.league.SummonerPositions;
-import com.merakianalytics.orianna.types.dto.match.Match;
-import com.merakianalytics.orianna.types.dto.match.MatchTimeline;
-import com.merakianalytics.orianna.types.dto.match.TournamentMatches;
-import com.merakianalytics.orianna.types.dto.spectator.CurrentGameInfo;
-import com.merakianalytics.orianna.types.dto.spectator.FeaturedGames;
-import com.merakianalytics.orianna.types.dto.staticdata.Champion;
-import com.merakianalytics.orianna.types.dto.staticdata.ChampionList;
-import com.merakianalytics.orianna.types.dto.staticdata.Item;
-import com.merakianalytics.orianna.types.dto.staticdata.ItemList;
-import com.merakianalytics.orianna.types.dto.staticdata.LanguageStrings;
-import com.merakianalytics.orianna.types.dto.staticdata.Languages;
-import com.merakianalytics.orianna.types.dto.staticdata.MapData;
-import com.merakianalytics.orianna.types.dto.staticdata.MapDetails;
-import com.merakianalytics.orianna.types.dto.staticdata.Mastery;
-import com.merakianalytics.orianna.types.dto.staticdata.MasteryList;
-import com.merakianalytics.orianna.types.dto.staticdata.ProfileIconData;
-import com.merakianalytics.orianna.types.dto.staticdata.ProfileIconDetails;
-import com.merakianalytics.orianna.types.dto.staticdata.Realm;
-import com.merakianalytics.orianna.types.dto.staticdata.ReforgedRune;
-import com.merakianalytics.orianna.types.dto.staticdata.ReforgedRunePath;
-import com.merakianalytics.orianna.types.dto.staticdata.ReforgedRuneSlot;
-import com.merakianalytics.orianna.types.dto.staticdata.ReforgedRuneTree;
-import com.merakianalytics.orianna.types.dto.staticdata.Rune;
-import com.merakianalytics.orianna.types.dto.staticdata.RuneList;
-import com.merakianalytics.orianna.types.dto.staticdata.SummonerSpell;
-import com.merakianalytics.orianna.types.dto.staticdata.SummonerSpellList;
-import com.merakianalytics.orianna.types.dto.staticdata.Versions;
-import com.merakianalytics.orianna.types.dto.status.ShardStatus;
-import com.merakianalytics.orianna.types.dto.summoner.Summoner;
-import com.merakianalytics.orianna.types.dto.thirdpartycode.VerificationString;
+import com.merakianalytics.orianna.types.data.CoreData;
+import com.merakianalytics.orianna.types.data.champion.ChampionStatus;
+import com.merakianalytics.orianna.types.data.champion.ChampionStatuses;
+import com.merakianalytics.orianna.types.data.championmastery.ChampionMasteries;
+import com.merakianalytics.orianna.types.data.championmastery.ChampionMastery;
+import com.merakianalytics.orianna.types.data.championmastery.ChampionMasteryScore;
+import com.merakianalytics.orianna.types.data.league.League;
+import com.merakianalytics.orianna.types.data.league.LeaguePositions;
+import com.merakianalytics.orianna.types.data.match.Match;
+import com.merakianalytics.orianna.types.data.match.Timeline;
+import com.merakianalytics.orianna.types.data.match.TournamentMatches;
+import com.merakianalytics.orianna.types.data.spectator.CurrentMatch;
+import com.merakianalytics.orianna.types.data.spectator.FeaturedMatches;
+import com.merakianalytics.orianna.types.data.staticdata.Champion;
+import com.merakianalytics.orianna.types.data.staticdata.Champions;
+import com.merakianalytics.orianna.types.data.staticdata.Item;
+import com.merakianalytics.orianna.types.data.staticdata.Items;
+import com.merakianalytics.orianna.types.data.staticdata.LanguageStrings;
+import com.merakianalytics.orianna.types.data.staticdata.Languages;
+import com.merakianalytics.orianna.types.data.staticdata.Map;
+import com.merakianalytics.orianna.types.data.staticdata.Maps;
+import com.merakianalytics.orianna.types.data.staticdata.Masteries;
+import com.merakianalytics.orianna.types.data.staticdata.Mastery;
+import com.merakianalytics.orianna.types.data.staticdata.ProfileIcon;
+import com.merakianalytics.orianna.types.data.staticdata.ProfileIcons;
+import com.merakianalytics.orianna.types.data.staticdata.Realm;
+import com.merakianalytics.orianna.types.data.staticdata.ReforgedRune;
+import com.merakianalytics.orianna.types.data.staticdata.ReforgedRunes;
+import com.merakianalytics.orianna.types.data.staticdata.Rune;
+import com.merakianalytics.orianna.types.data.staticdata.Runes;
+import com.merakianalytics.orianna.types.data.staticdata.SummonerSpell;
+import com.merakianalytics.orianna.types.data.staticdata.SummonerSpells;
+import com.merakianalytics.orianna.types.data.staticdata.Versions;
+import com.merakianalytics.orianna.types.data.status.ShardStatus;
+import com.merakianalytics.orianna.types.data.summoner.Summoner;
+import com.merakianalytics.orianna.types.data.thirdpartycode.VerificationString;
 
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
@@ -84,51 +83,51 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     public static class Configuration extends com.merakianalytics.orianna.datastores.xodus.XodusDataStore.Configuration {
         private static final Long DEFAULT_ETERNAL_PERIOD = -1L;
         private static final TimeUnit DEFAULT_ETERNAL_UNIT = TimeUnit.DAYS;
-        private static final Map<String, ExpirationPeriod> DEFAULT_EXPIRATION_PERIODS = ImmutableMap.<String, ExpirationPeriod> builder()
-            .put(com.merakianalytics.orianna.types.dto.champion.Champion.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
-            .put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
+        private static final java.util.Map<String, ExpirationPeriod> DEFAULT_EXPIRATION_PERIODS = ImmutableMap.<String, ExpirationPeriod> builder()
+            .put(ChampionStatus.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
+            .put(ChampionStatuses.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(ChampionMastery.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteries.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
-            .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(30L, TimeUnit.MINUTES))
-            .put(SummonerPositions.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
+            .put(League.class.getCanonicalName(), ExpirationPeriod.create(30L, TimeUnit.MINUTES))
+            .put(LeaguePositions.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(Match.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             // TODO: Matchlist
-            .put(MatchTimeline.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Timeline.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(TournamentMatches.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
-            .put(CurrentGameInfo.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
-            .put(FeaturedGames.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
+            .put(CurrentMatch.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
+            .put(FeaturedMatches.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
             .put(Champion.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
-            .put(ChampionList.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Champions.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(Item.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
-            .put(ItemList.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Items.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(Languages.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(LanguageStrings.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
-            .put(MapData.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
-            .put(MapDetails.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Maps.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Map.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(Mastery.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
-            .put(MasteryList.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
-            .put(ProfileIconData.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
-            .put(ProfileIconDetails.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Masteries.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(ProfileIcons.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(ProfileIcon.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(ReforgedRune.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
-            .put(ReforgedRuneTree.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(ReforgedRunes.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(Realm.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(Rune.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
-            .put(RuneList.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Runes.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(SummonerSpell.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
-            .put(SummonerSpellList.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(SummonerSpells.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(Versions.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(ShardStatus.class.getCanonicalName(), ExpirationPeriod.create(15L, TimeUnit.MINUTES))
             .put(Summoner.class.getCanonicalName(), ExpirationPeriod.create(1L, TimeUnit.DAYS))
             .put(VerificationString.class.getCanonicalName(), ExpirationPeriod.create(5L, TimeUnit.MINUTES))
             .build();
 
-        private Map<String, ExpirationPeriod> expirationPeriods = DEFAULT_EXPIRATION_PERIODS;
+        private java.util.Map<String, ExpirationPeriod> expirationPeriods = DEFAULT_EXPIRATION_PERIODS;
 
         /**
          * @return the expirationPeriods
          */
-        public Map<String, ExpirationPeriod> getExpirationPeriods() {
+        public java.util.Map<String, ExpirationPeriod> getExpirationPeriods() {
             return expirationPeriods;
         }
 
@@ -136,7 +135,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
          * @param expirationPeriods
          *        the expirationPeriods to set
          */
-        public void setExpirationPeriods(final Map<String, ExpirationPeriod> expirationPeriods) {
+        public void setExpirationPeriods(final java.util.Map<String, ExpirationPeriod> expirationPeriods) {
             this.expirationPeriods = expirationPeriods;
         }
     }
@@ -147,14 +146,14 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
 
     private static String getCurrentVersion(final Platform platform, final PipelineContext context) {
         final Realm realm = context.getPipeline().get(Realm.class, ImmutableMap.<String, Object> of("platform", platform));
-        return realm.getV();
+        return realm.getVersion();
     }
 
-    private static <T extends DataObject> ByteIterable toByteIterable(final T value) {
+    private static <T extends CoreData> ByteIterable toByteIterable(final T value) {
         return new CompoundByteIterable(new ByteIterable[] {LongBinding.longToEntry(System.currentTimeMillis()), new ArrayByteIterable(value.toBytes())}, 2);
     }
 
-    private final Map<String, ExpirationPeriod> expirationPeriods;
+    private final java.util.Map<String, ExpirationPeriod> expirationPeriods;
 
     public XodusDataStore() {
         this(new Configuration());
@@ -165,7 +164,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         expirationPeriods = config.getExpirationPeriods();
     }
 
-    private <T extends DataObject> T get(final Class<T> clazz, final int key) {
+    private <T extends CoreData> T get(final Class<T> clazz, final int key) {
         final Transaction transaction = xodus.beginTransaction();
         ByteIterable data = null;
         try {
@@ -193,10 +192,10 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             transaction.commit();
         }
 
-        return DataObject.fromBytes(clazz, data.getBytesUnsafe());
+        return CoreData.fromBytes(clazz, data.getBytesUnsafe());
     }
 
-    private <T extends DataObject> CloseableIterator<T> get(final Class<T> clazz, final Iterator<Integer> keyIterator) {
+    private <T extends CoreData> CloseableIterator<T> get(final Class<T> clazz, final Iterator<Integer> keyIterator) {
         final List<Integer> keys = Lists.newArrayList(keyIterator);
         final ExpirationPeriod period = expirationPeriods.get(clazz.getCanonicalName());
         final List<ByteIterable> results = new ArrayList<>(keys.size());
@@ -239,7 +238,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
 
             @Override
             public T next() {
-                return DataObject.fromBytes(clazz, iterator.next().getBytesUnsafe());
+                return CoreData.fromBytes(clazz, iterator.next().getBytesUnsafe());
             }
 
             @Override
@@ -250,7 +249,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @Get(Champion.class)
-    public Champion getChampion(Map<String, Object> query, final PipelineContext context) {
+    public Champion getChampion(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
@@ -274,15 +273,43 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(Champion.class, UniqueKeys.forChampionDtoQuery(query));
+        return get(Champion.class, UniqueKeys.forChampionDataQuery(query));
     }
 
-    @Get(ChampionList.class)
-    public ChampionList getChampionList(Map<String, Object> query, final PipelineContext context) {
+    @Get(ChampionMasteries.class)
+    public ChampionMasteries getChampionMasteries(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Number summonerId = (Number)query.get("summonerId");
+        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
+
+        return get(ChampionMasteries.class, UniqueKeys.forChampionMasteriesDataQuery(query));
+    }
+
+    @Get(ChampionMastery.class)
+    public ChampionMastery getChampionMastery(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Number summonerId = (Number)query.get("summonerId");
+        final Number championId = (Number)query.get("championId");
+        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId", championId, "championId");
+
+        return get(ChampionMastery.class, UniqueKeys.forChampionMasteryDataQuery(query));
+    }
+
+    @Get(ChampionMasteryScore.class)
+    public ChampionMasteryScore getChampionMasteryScore(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Number summonerId = (Number)query.get("summonerId");
+        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
+
+        return get(ChampionMasteryScore.class, UniqueKeys.forChampionMasteryScoreDataQuery(query));
+    }
+
+    @Get(Champions.class)
+    public Champions getChampions(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
-        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData", "dataById"))) {
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
             query = new HashMap<>(query);
 
             if(!query.containsKey("version")) {
@@ -296,54 +323,22 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             if(!query.containsKey("includedData")) {
                 query.put("includedData", Collections.<String> emptySet());
             }
-
-            if(!query.containsKey("dataById")) {
-                query.put("dataById", Boolean.FALSE);
-            }
         }
 
-        return get(ChampionList.class, UniqueKeys.forChampionListDtoQuery(query));
+        return get(Champions.class, UniqueKeys.forChampionsDataQuery(query));
     }
 
-    @Get(ChampionMasteries.class)
-    public ChampionMasteries getChampionMasteries(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
-        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
-
-        return get(ChampionMasteries.class, UniqueKeys.forChampionMasteriesDtoQuery(query));
-    }
-
-    @Get(ChampionMastery.class)
-    public ChampionMastery getChampionMastery(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
-        final Number championId = (Number)query.get("championId");
-        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId", championId, "championId");
-
-        return get(ChampionMastery.class, UniqueKeys.forChampionMasteryDtoQuery(query));
-    }
-
-    @Get(ChampionMasteryScore.class)
-    public ChampionMasteryScore getChampionMasteryScore(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
-        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
-
-        return get(ChampionMasteryScore.class, UniqueKeys.forChampionMasteryScoreDtoQuery(query));
-    }
-
-    @Get(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public com.merakianalytics.orianna.types.dto.champion.Champion getChampionStatus(final Map<String, Object> query, final PipelineContext context) {
+    @Get(ChampionStatus.class)
+    public ChampionStatus getChampionStatus(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Number id = (Number)query.get("id");
         Utilities.checkNotNull(platform, "platform", id, "id");
 
-        return get(com.merakianalytics.orianna.types.dto.champion.Champion.class, UniqueKeys.forChampionStatusDtoQuery(query));
+        return get(ChampionStatus.class, UniqueKeys.forChampionStatusDataQuery(query));
     }
 
-    @Get(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public com.merakianalytics.orianna.types.dto.champion.ChampionList getChampionStatusList(Map<String, Object> query, final PipelineContext context) {
+    @Get(ChampionStatuses.class)
+    public ChampionStatuses getChampionStatusList(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
@@ -352,28 +347,28 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             query.put("freeToPlay", Boolean.FALSE);
         }
 
-        return get(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, UniqueKeys.forChampionStatusListDtoQuery(query));
+        return get(ChampionStatuses.class, UniqueKeys.forChampionStatusesDataQuery(query));
     }
 
-    @Get(CurrentGameInfo.class)
-    public CurrentGameInfo getCurrentGameInfo(final Map<String, Object> query, final PipelineContext context) {
+    @Get(CurrentMatch.class)
+    public CurrentMatch getCurrentMatch(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Number summonerId = (Number)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
-        return get(CurrentGameInfo.class, UniqueKeys.forCurrentGameInfoDtoQuery(query));
+        return get(CurrentMatch.class, UniqueKeys.forCurrentMatchDataQuery(query));
     }
 
-    @Get(FeaturedGames.class)
-    public FeaturedGames getFeaturedGames(final Map<String, Object> query, final PipelineContext context) {
+    @Get(FeaturedMatches.class)
+    public FeaturedMatches getFeaturedMatches(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
-        return get(FeaturedGames.class, UniqueKeys.forFeaturedGamesDtoQuery(query));
+        return get(FeaturedMatches.class, UniqueKeys.forFeaturedMatchesDataQuery(query));
     }
 
     @Get(Item.class)
-    public Item getItem(Map<String, Object> query, final PipelineContext context) {
+    public Item getItem(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
@@ -396,11 +391,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(Item.class, UniqueKeys.forItemDtoQuery(query));
+        return get(Item.class, UniqueKeys.forItemDataQuery(query));
     }
 
-    @Get(ItemList.class)
-    public ItemList getItemList(Map<String, Object> query, final PipelineContext context) {
+    @Get(Items.class)
+    public Items getItems(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
@@ -420,19 +415,19 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(ItemList.class, UniqueKeys.forItemListDtoQuery(query));
+        return get(Items.class, UniqueKeys.forItemsDataQuery(query));
     }
 
     @Get(Languages.class)
-    public Languages getLanguages(final Map<String, Object> query, final PipelineContext context) {
+    public Languages getLanguages(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
-        return get(Languages.class, UniqueKeys.forLanguagesDtoQuery(query));
+        return get(Languages.class, UniqueKeys.forLanguagesDataQuery(query));
     }
 
     @Get(LanguageStrings.class)
-    public LanguageStrings getLanguageStrings(Map<String, Object> query, final PipelineContext context) {
+    public LanguageStrings getLanguageStrings(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
@@ -448,11 +443,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(LanguageStrings.class, UniqueKeys.forLanguageStringsDtoQuery(query));
+        return get(LanguageStrings.class, UniqueKeys.forLanguageStringsDataQuery(query));
     }
 
-    @Get(LeagueList.class)
-    public LeagueList getLeagueList(final Map<String, Object> query, final PipelineContext context) {
+    @Get(League.class)
+    public League getLeague(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Tier tier = (Tier)query.get("tier");
@@ -477,12 +472,21 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(LeagueList.class, UniqueKeys.forLeagueListDtoQuery(query));
+        return get(League.class, UniqueKeys.forLeagueDataQuery(query));
+    }
+
+    @Get(LeaguePositions.class)
+    public LeaguePositions getLeaguePositions(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Number summonerId = (Number)query.get("summonerId");
+        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
+
+        return get(LeaguePositions.class, UniqueKeys.forLeaguePositionsDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(Champion.class)
-    public CloseableIterator<Champion> getManyChampion(Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Champion> getManyChampion(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
@@ -506,12 +510,43 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(Champion.class, UniqueKeys.forManyChampionDtoQuery(query));
+        return get(Champion.class, UniqueKeys.forManyChampionDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(ChampionList.class)
-    public CloseableIterator<ChampionList> getManyChampionList(Map<String, Object> query, final PipelineContext context) {
+    @GetMany(ChampionMasteries.class)
+    public CloseableIterator<ChampionMasteries> getManyChampionMasteries(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
+        Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
+
+        return get(ChampionMasteries.class, UniqueKeys.forManyChampionMasteriesDataQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(ChampionMastery.class)
+    public CloseableIterator<ChampionMastery> getManyChampionMastery(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Number summonerId = (Number)query.get("summonerId");
+        final Iterable<Number> iter = (Iterable<Number>)query.get("championIds");
+        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId", iter, "championIds");
+
+        return get(ChampionMastery.class, UniqueKeys.forManyChampionMasteryDataQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(ChampionMasteryScore.class)
+    public CloseableIterator<ChampionMasteryScore> getManyChampionMasteryScore(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
+        Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
+
+        return get(ChampionMasteryScore.class, UniqueKeys.forManyChampionMasteryScoreDataQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(Champions.class)
+    public CloseableIterator<Champions> getManyChampions(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
@@ -532,54 +567,23 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(ChampionList.class, UniqueKeys.forManyChampionListDtoQuery(query));
+        return get(Champions.class, UniqueKeys.forManyChampionsDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(ChampionMasteries.class)
-    public CloseableIterator<ChampionMasteries> getManyChampionMasteries(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
-        Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
-
-        return get(ChampionMasteries.class, UniqueKeys.forManyChampionMasteriesDtoQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(ChampionMastery.class)
-    public CloseableIterator<ChampionMastery> getManyChampionMastery(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
-        final Iterable<Number> iter = (Iterable<Number>)query.get("championIds");
-        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId", iter, "championIds");
-
-        return get(ChampionMastery.class, UniqueKeys.forManyChampionMasteryDtoQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(ChampionMasteryScore.class)
-    public CloseableIterator<ChampionMasteryScore> getManyChampionMasteryScore(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
-        Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
-
-        return get(ChampionMasteryScore.class, UniqueKeys.forManyChampionMasteryScoreDtoQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public CloseableIterator<com.merakianalytics.orianna.types.dto.champion.Champion> getManyChampionStatus(final Map<String, Object> query,
+    @GetMany(ChampionStatus.class)
+    public CloseableIterator<ChampionStatus> getManyChampionStatus(final java.util.Map<String, Object> query,
         final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<Number> iter = (Iterable<Number>)query.get("ids");
         Utilities.checkNotNull(platform, "platform", iter, "ids");
 
-        return get(com.merakianalytics.orianna.types.dto.champion.Champion.class, UniqueKeys.forManyChampionStatusDtoQuery(query));
+        return get(ChampionStatus.class, UniqueKeys.forManyChampionStatusDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public CloseableIterator<com.merakianalytics.orianna.types.dto.champion.ChampionList> getManyChampionStatusList(Map<String, Object> query,
+    @GetMany(ChampionStatuses.class)
+    public CloseableIterator<ChampionStatuses> getManyChampionStatusList(java.util.Map<String, Object> query,
         final PipelineContext context) {
         final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
         Utilities.checkNotNull(iter, "platforms");
@@ -589,31 +593,31 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             query.put("freeToPlay", Boolean.FALSE);
         }
 
-        return get(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, UniqueKeys.forManyChampionStatusListDtoQuery(query));
+        return get(ChampionStatuses.class, UniqueKeys.forManyChampionStatusesDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(CurrentGameInfo.class)
-    public CloseableIterator<CurrentGameInfo> getManyCurrentGameInfo(final Map<String, Object> query, final PipelineContext context) {
+    @GetMany(CurrentMatch.class)
+    public CloseableIterator<CurrentMatch> getManyCurrentMatch(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
         Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
 
-        return get(CurrentGameInfo.class, UniqueKeys.forManyCurrentGameInfoDtoQuery(query));
+        return get(CurrentMatch.class, UniqueKeys.forManyCurrentMatchDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(FeaturedGames.class)
-    public CloseableIterator<FeaturedGames> getManyFeaturedGames(final Map<String, Object> query, final PipelineContext context) {
+    @GetMany(FeaturedMatches.class)
+    public CloseableIterator<FeaturedMatches> getManyFeaturedMatches(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
         Utilities.checkNotNull(iter, "platforms");
 
-        return get(FeaturedGames.class, UniqueKeys.forManyFeaturedGamesDtoQuery(query));
+        return get(FeaturedMatches.class, UniqueKeys.forManyFeaturedMatchesDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(Item.class)
-    public CloseableIterator<Item> getManyItem(Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Item> getManyItem(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
@@ -636,12 +640,12 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(Item.class, UniqueKeys.forManyItemDtoQuery(query));
+        return get(Item.class, UniqueKeys.forManyItemDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(ItemList.class)
-    public CloseableIterator<ItemList> getManyItemList(Map<String, Object> query, final PipelineContext context) {
+    @GetMany(Items.class)
+    public CloseableIterator<Items> getManyItems(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
@@ -658,21 +662,21 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(ItemList.class, UniqueKeys.forManyItemListDtoQuery(query));
+        return get(Items.class, UniqueKeys.forManyItemsDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(Languages.class)
-    public CloseableIterator<Languages> getManyLanguages(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Languages> getManyLanguages(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
         Utilities.checkNotNull(iter, "platforms");
 
-        return get(Languages.class, UniqueKeys.forManyLanguagesDtoQuery(query));
+        return get(Languages.class, UniqueKeys.forManyLanguagesDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(LanguageStrings.class)
-    public CloseableIterator<LanguageStrings> getManyLanguageStrings(Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<LanguageStrings> getManyLanguageStrings(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("locales");
         Utilities.checkNotNull(platform, "platform", iter, "locales");
@@ -682,12 +686,12 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             query.put("version", getCurrentVersion(platform, context));
         }
 
-        return get(LanguageStrings.class, UniqueKeys.forManyLanguageStringsDtoQuery(query));
+        return get(LanguageStrings.class, UniqueKeys.forManyLanguageStringsDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(LeagueList.class)
-    public CloseableIterator<LeagueList> getManyLeagueList(final Map<String, Object> query, final PipelineContext context) {
+    @GetMany(League.class)
+    public CloseableIterator<League> getManyLeague(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Tier tier = (Tier)query.get("tier");
@@ -706,27 +710,22 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(LeagueList.class, UniqueKeys.forManyLeagueListDtoQuery(query));
+        return get(League.class, UniqueKeys.forManyLeagueDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(MapData.class)
-    public CloseableIterator<MapData> getManyMapData(Map<String, Object> query, final PipelineContext context) {
+    @GetMany(LeaguePositions.class)
+    public CloseableIterator<LeaguePositions> getManyLeaguePositions(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Iterable<String> iter = (Iterable<String>)query.get("versions");
-        Utilities.checkNotNull(platform, "platform", iter, "versions");
+        final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
+        Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
 
-        if(!query.containsKey("locale")) {
-            query = new HashMap<>(query);
-            query.put("locale", platform.getDefaultLocale());
-        }
-
-        return get(MapData.class, UniqueKeys.forManyMapDataDtoQuery(query));
+        return get(LeaguePositions.class, UniqueKeys.forManyLeaguePositionsDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(MapDetails.class)
-    public CloseableIterator<MapDetails> getManyMapDetails(Map<String, Object> query, final PipelineContext context) {
+    @GetMany(Map.class)
+    public CloseableIterator<Map> getManyMap(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
@@ -745,12 +744,49 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(MapDetails.class, UniqueKeys.forManyMapDetailsDtoQuery(query));
+        return get(Map.class, UniqueKeys.forManyMapDataQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(Maps.class)
+    public CloseableIterator<Maps> getManyMaps(java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<String> iter = (Iterable<String>)query.get("versions");
+        Utilities.checkNotNull(platform, "platform", iter, "versions");
+
+        if(!query.containsKey("locale")) {
+            query = new HashMap<>(query);
+            query.put("locale", platform.getDefaultLocale());
+        }
+
+        return get(Maps.class, UniqueKeys.forManyMapsDataQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(Masteries.class)
+    public CloseableIterator<Masteries> getManyMasteries(java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<String> iter = (Iterable<String>)query.get("versions");
+        Utilities.checkNotNull(platform, "platform", iter, "versions");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
+        return get(Masteries.class, UniqueKeys.forManyMasteriesDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(Mastery.class)
-    public CloseableIterator<Mastery> getManyMastery(Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Mastery> getManyMastery(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
@@ -773,69 +809,22 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(Mastery.class, UniqueKeys.forManyMasteryDtoQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(MasteryList.class)
-    public CloseableIterator<MasteryList> getManyMasteryList(Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Iterable<String> iter = (Iterable<String>)query.get("versions");
-        Utilities.checkNotNull(platform, "platform", iter, "versions");
-
-        if(!query.keySet().containsAll(Lists.newArrayList("locale", "includedData"))) {
-            query = new HashMap<>(query);
-
-            if(!query.containsKey("locale")) {
-                query.put("locale", platform.getDefaultLocale());
-            }
-
-            if(!query.containsKey("includedData")) {
-                query.put("includedData", Collections.<String> emptySet());
-            }
-        }
-
-        return get(MasteryList.class, UniqueKeys.forManyMasteryListDtoQuery(query));
+        return get(Mastery.class, UniqueKeys.forManyMasteryDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(Match.class)
-    public CloseableIterator<Match> getManyMatch(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Match> getManyMatch(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<Number> iter = (Iterable<Number>)query.get("matchIds");
         Utilities.checkNotNull(platform, "platform", iter, "matchIds");
 
-        return get(Match.class, UniqueKeys.forManyMatchDtoQuery(query));
+        return get(Match.class, UniqueKeys.forManyMatchDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(MatchTimeline.class)
-    public CloseableIterator<MatchTimeline> getManyMatchTimeline(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Iterable<Number> iter = (Iterable<Number>)query.get("matchIds");
-        Utilities.checkNotNull(platform, "platform", iter, "matchIds");
-
-        return get(MatchTimeline.class, UniqueKeys.forManyMatchTimelineDtoQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(ProfileIconData.class)
-    public CloseableIterator<ProfileIconData> getManyProfileIconData(Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Iterable<String> iter = (Iterable<String>)query.get("versions");
-        Utilities.checkNotNull(platform, "platform", iter, "versions");
-
-        if(!query.containsKey("locale")) {
-            query = new HashMap<>(query);
-            query.put("locale", platform.getDefaultLocale());
-        }
-
-        return get(ProfileIconData.class, UniqueKeys.forManyProfileIconDataDtoQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(ProfileIconDetails.class)
-    public CloseableIterator<ProfileIconDetails> getManyProfileIconDetails(Map<String, Object> query, final PipelineContext context) {
+    @GetMany(ProfileIcon.class)
+    public CloseableIterator<ProfileIcon> getManyProfileIcon(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
         Utilities.checkNotNull(platform, "platform", ids, "ids");
@@ -852,21 +841,36 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(ProfileIconDetails.class, UniqueKeys.forManyProfileIconDetailsDtoQuery(query));
+        return get(ProfileIcon.class, UniqueKeys.forManyProfileIconDataQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(ProfileIcons.class)
+    public CloseableIterator<ProfileIcons> getManyProfileIcons(java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<String> iter = (Iterable<String>)query.get("versions");
+        Utilities.checkNotNull(platform, "platform", iter, "versions");
+
+        if(!query.containsKey("locale")) {
+            query = new HashMap<>(query);
+            query.put("locale", platform.getDefaultLocale());
+        }
+
+        return get(ProfileIcons.class, UniqueKeys.forManyProfileIconsDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(Realm.class)
-    public CloseableIterator<Realm> getManyRealm(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Realm> getManyRealm(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
         Utilities.checkNotNull(iter, "platforms");
 
-        return get(Realm.class, UniqueKeys.forManyRealmDtoQuery(query));
+        return get(Realm.class, UniqueKeys.forManyRealmDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(ReforgedRune.class)
-    public CloseableIterator<ReforgedRune> getManyReforgedRune(Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<ReforgedRune> getManyReforgedRune(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
@@ -886,12 +890,12 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(ReforgedRune.class, UniqueKeys.forManyReforgedRuneDtoQuery(query));
+        return get(ReforgedRune.class, UniqueKeys.forManyReforgedRuneDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(ReforgedRuneTree.class)
-    public CloseableIterator<ReforgedRuneTree> getManyReforgedRuneTree(Map<String, Object> query, final PipelineContext context) {
+    @GetMany(ReforgedRunes.class)
+    public CloseableIterator<ReforgedRunes> getManyReforgedRunes(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
@@ -901,12 +905,12 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             query.put("locale", platform.getDefaultLocale());
         }
 
-        return get(ReforgedRuneTree.class, UniqueKeys.forManyReforgedRuneTreeDtoQuery(query));
+        return get(ReforgedRunes.class, UniqueKeys.forManyReforgedRunesDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(Rune.class)
-    public CloseableIterator<Rune> getManyRune(Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Rune> getManyRune(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
@@ -929,12 +933,12 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(Rune.class, UniqueKeys.forManyRuneDtoQuery(query));
+        return get(Rune.class, UniqueKeys.forManyRuneDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(RuneList.class)
-    public CloseableIterator<RuneList> getManyRuneList(Map<String, Object> query, final PipelineContext context) {
+    @GetMany(Runes.class)
+    public CloseableIterator<Runes> getManyRunes(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
@@ -951,21 +955,21 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(RuneList.class, UniqueKeys.forManyRuneListDtoQuery(query));
+        return get(Runes.class, UniqueKeys.forManyRunesDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(ShardStatus.class)
-    public CloseableIterator<ShardStatus> getManyShardStatus(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<ShardStatus> getManyShardStatus(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
         Utilities.checkNotNull(iter, "platforms");
 
-        return get(ShardStatus.class, UniqueKeys.forManyShardStatusDtoQuery(query));
+        return get(ShardStatus.class, UniqueKeys.forManyShardStatusDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(Summoner.class)
-    public CloseableIterator<Summoner> getManySummoner(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Summoner> getManySummoner(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> summonerIds = (Iterable<Number>)query.get("ids");
@@ -973,22 +977,12 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final Iterable<String> summonerNames = (Iterable<String>)query.get("names");
         Utilities.checkAtLeastOneNotNull(summonerIds, "ids", accountIds, "accountIds", summonerNames, "names");
 
-        return get(Summoner.class, UniqueKeys.forManySummonerDtoQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(SummonerPositions.class)
-    public CloseableIterator<SummonerPositions> getManySummonerPositions(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
-        Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
-
-        return get(SummonerPositions.class, UniqueKeys.forManySummonerPositionsDtoQuery(query));
+        return get(Summoner.class, UniqueKeys.forManySummonerDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(SummonerSpell.class)
-    public CloseableIterator<SummonerSpell> getManySummonerSpell(Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<SummonerSpell> getManySummonerSpell(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
@@ -1011,12 +1005,12 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(SummonerSpell.class, UniqueKeys.forManySummonerSpellDtoQuery(query));
+        return get(SummonerSpell.class, UniqueKeys.forManySummonerSpellDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
-    @GetMany(SummonerSpellList.class)
-    public CloseableIterator<SummonerSpellList> getManySummonerSpellList(Map<String, Object> query, final PipelineContext context) {
+    @GetMany(SummonerSpells.class)
+    public CloseableIterator<SummonerSpells> getManySummonerSpells(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
@@ -1033,60 +1027,50 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(SummonerSpellList.class, UniqueKeys.forManySummonerSpellListDtoQuery(query));
+        return get(SummonerSpells.class, UniqueKeys.forManySummonerSpellsDataQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(Timeline.class)
+    public CloseableIterator<Timeline> getManyTimeline(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<Number> iter = (Iterable<Number>)query.get("matchIds");
+        Utilities.checkNotNull(platform, "platform", iter, "matchIds");
+
+        return get(Timeline.class, UniqueKeys.forManyTimelineDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(TournamentMatches.class)
-    public CloseableIterator<TournamentMatches> getManyTournamentMatches(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<TournamentMatches> getManyTournamentMatches(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("tournamentCodes");
         Utilities.checkNotNull(platform, "platform", iter, "tournamentCodes");
 
-        return get(TournamentMatches.class, UniqueKeys.forManyTournamentMatchesDtoQuery(query));
+        return get(TournamentMatches.class, UniqueKeys.forManyTournamentMatchesDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(VerificationString.class)
-    public CloseableIterator<VerificationString> getManyVerificationString(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<VerificationString> getManyVerificationString(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
         Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
 
-        return get(VerificationString.class, UniqueKeys.forManyVerificationStringDtoQuery(query));
+        return get(VerificationString.class, UniqueKeys.forManyVerificationStringDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(Versions.class)
-    public CloseableIterator<Versions> getManyVersions(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Versions> getManyVersions(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
         Utilities.checkNotNull(iter, "platforms");
 
-        return get(Versions.class, UniqueKeys.forManyVersionsDtoQuery(query));
+        return get(Versions.class, UniqueKeys.forManyVersionsDataQuery(query));
     }
 
-    @Get(MapData.class)
-    public MapData getMapData(Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        Utilities.checkNotNull(platform, "platform");
-
-        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
-            query = new HashMap<>(query);
-
-            if(!query.containsKey("version")) {
-                query.put("version", getCurrentVersion(platform, context));
-            }
-
-            if(!query.containsKey("locale")) {
-                query.put("locale", platform.getDefaultLocale());
-            }
-        }
-
-        return get(MapData.class, UniqueKeys.forMapDataDtoQuery(query));
-    }
-
-    @Get(MapDetails.class)
-    public MapDetails getMapDetails(Map<String, Object> query, final PipelineContext context) {
+    @Get(Map.class)
+    public Map getMap(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
@@ -1105,11 +1089,55 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(MapDetails.class, UniqueKeys.forMapDetailsDtoQuery(query));
+        return get(Map.class, UniqueKeys.forMapDataQuery(query));
+    }
+
+    @Get(Maps.class)
+    public Maps getMaps(java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
+
+        return get(Maps.class, UniqueKeys.forMapsDataQuery(query));
+    }
+
+    @Get(Masteries.class)
+    public Masteries getMasteries(java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
+        return get(Masteries.class, UniqueKeys.forMasteriesDataQuery(query));
     }
 
     @Get(Mastery.class)
-    public Mastery getMastery(Map<String, Object> query, final PipelineContext context) {
+    public Mastery getMastery(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
@@ -1132,73 +1160,20 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(Mastery.class, UniqueKeys.forMasteryDtoQuery(query));
-    }
-
-    @Get(MasteryList.class)
-    public MasteryList getMasteryList(Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        Utilities.checkNotNull(platform, "platform");
-
-        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
-            query = new HashMap<>(query);
-
-            if(!query.containsKey("version")) {
-                query.put("version", getCurrentVersion(platform, context));
-            }
-
-            if(!query.containsKey("locale")) {
-                query.put("locale", platform.getDefaultLocale());
-            }
-
-            if(!query.containsKey("includedData")) {
-                query.put("includedData", Collections.<String> emptySet());
-            }
-        }
-
-        return get(MasteryList.class, UniqueKeys.forMasteryListDtoQuery(query));
+        return get(Mastery.class, UniqueKeys.forMasteryDataQuery(query));
     }
 
     @Get(Match.class)
-    public Match getMatch(final Map<String, Object> query, final PipelineContext context) {
+    public Match getMatch(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Number matchId = (Number)query.get("matchId");
         Utilities.checkNotNull(platform, "platform", matchId, "matchId");
 
-        return get(Match.class, UniqueKeys.forMatchDtoQuery(query));
+        return get(Match.class, UniqueKeys.forMatchDataQuery(query));
     }
 
-    @Get(MatchTimeline.class)
-    public MatchTimeline getMatchTimeline(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Number matchId = (Number)query.get("matchId");
-        Utilities.checkNotNull(platform, "platform", matchId, "matchId");
-
-        return get(MatchTimeline.class, UniqueKeys.forMatchTimelineDtoQuery(query));
-    }
-
-    @Get(ProfileIconData.class)
-    public ProfileIconData getProfileIconData(Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        Utilities.checkNotNull(platform, "platform");
-
-        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
-            query = new HashMap<>(query);
-
-            if(!query.containsKey("version")) {
-                query.put("version", getCurrentVersion(platform, context));
-            }
-
-            if(!query.containsKey("locale")) {
-                query.put("locale", platform.getDefaultLocale());
-            }
-        }
-
-        return get(ProfileIconData.class, UniqueKeys.forProfileIconDataDtoQuery(query));
-    }
-
-    @Get(ProfileIconDetails.class)
-    public ProfileIconDetails getProfileIconDetails(Map<String, Object> query, final PipelineContext context) {
+    @Get(ProfileIcon.class)
+    public ProfileIcon getProfileIcon(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
@@ -1216,19 +1191,39 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(ProfileIconDetails.class, UniqueKeys.forProfileIconDetailsDtoQuery(query));
+        return get(ProfileIcon.class, UniqueKeys.forProfileIconDataQuery(query));
     }
 
-    @Get(Realm.class)
-    public Realm getRealm(final Map<String, Object> query, final PipelineContext context) {
+    @Get(ProfileIcons.class)
+    public ProfileIcons getProfileIcons(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
-        return get(Realm.class, UniqueKeys.forRealmDtoQuery(query));
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
+
+        return get(ProfileIcons.class, UniqueKeys.forProfileIconsDataQuery(query));
+    }
+
+    @Get(Realm.class)
+    public Realm getRealm(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+
+        return get(Realm.class, UniqueKeys.forRealmDataQuery(query));
     }
 
     @Get(ReforgedRune.class)
-    public ReforgedRune getReforgedRune(Map<String, Object> query, final PipelineContext context) {
+    public ReforgedRune getReforgedRune(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
@@ -1248,11 +1243,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(ReforgedRune.class, UniqueKeys.forReforgedRuneDtoQuery(query));
+        return get(ReforgedRune.class, UniqueKeys.forReforgedRuneDataQuery(query));
     }
 
-    @Get(ReforgedRuneTree.class)
-    public ReforgedRuneTree getReforgedRuneTree(Map<String, Object> query, final PipelineContext context) {
+    @Get(ReforgedRunes.class)
+    public ReforgedRunes getReforgedRunes(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
@@ -1268,11 +1263,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(ReforgedRuneTree.class, UniqueKeys.forReforgedRuneTreeDtoQuery(query));
+        return get(ReforgedRunes.class, UniqueKeys.forReforgedRunesDataQuery(query));
     }
 
     @Get(Rune.class)
-    public Rune getRune(Map<String, Object> query, final PipelineContext context) {
+    public Rune getRune(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
@@ -1295,11 +1290,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(Rune.class, UniqueKeys.forRuneDtoQuery(query));
+        return get(Rune.class, UniqueKeys.forRuneDataQuery(query));
     }
 
-    @Get(RuneList.class)
-    public RuneList getRuneList(Map<String, Object> query, final PipelineContext context) {
+    @Get(Runes.class)
+    public Runes getRunes(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
@@ -1319,19 +1314,19 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(RuneList.class, UniqueKeys.forRuneListDtoQuery(query));
+        return get(Runes.class, UniqueKeys.forRunesDataQuery(query));
     }
 
     @Get(ShardStatus.class)
-    public ShardStatus getShardStatus(final Map<String, Object> query, final PipelineContext context) {
+    public ShardStatus getShardStatus(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
-        return get(ShardStatus.class, UniqueKeys.forShardStatusDtoQuery(query));
+        return get(ShardStatus.class, UniqueKeys.forShardStatusDataQuery(query));
     }
 
     @Get(Summoner.class)
-    public Summoner getSummoner(final Map<String, Object> query, final PipelineContext context) {
+    public Summoner getSummoner(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number summonerId = (Number)query.get("id");
@@ -1339,20 +1334,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final String summonerName = (String)query.get("name");
         Utilities.checkAtLeastOneNotNull(summonerId, "id", accountId, "accountId", summonerName, "name");
 
-        return get(Summoner.class, UniqueKeys.forSummonerDtoQuery(query));
-    }
-
-    @Get(SummonerPositions.class)
-    public SummonerPositions getSummonerPositions(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
-        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
-
-        return get(SummonerPositions.class, UniqueKeys.forSummonerPositionsDtoQuery(query));
+        return get(Summoner.class, UniqueKeys.forSummonerDataQuery(query));
     }
 
     @Get(SummonerSpell.class)
-    public SummonerSpell getSummonerSpell(Map<String, Object> query, final PipelineContext context) {
+    public SummonerSpell getSummonerSpell(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
@@ -1375,11 +1361,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(SummonerSpell.class, UniqueKeys.forSummonerSpellDtoQuery(query));
+        return get(SummonerSpell.class, UniqueKeys.forSummonerSpellDataQuery(query));
     }
 
-    @Get(SummonerSpellList.class)
-    public SummonerSpellList getSummonerSpellList(Map<String, Object> query, final PipelineContext context) {
+    @Get(SummonerSpells.class)
+    public SummonerSpells getSummonerSpells(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
@@ -1399,33 +1385,42 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             }
         }
 
-        return get(SummonerSpellList.class, UniqueKeys.forSummonerSpellListDtoQuery(query));
+        return get(SummonerSpells.class, UniqueKeys.forSummonerSpellsDataQuery(query));
+    }
+
+    @Get(Timeline.class)
+    public Timeline getTimeline(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Number matchId = (Number)query.get("matchId");
+        Utilities.checkNotNull(platform, "platform", matchId, "matchId");
+
+        return get(Timeline.class, UniqueKeys.forTimelineDataQuery(query));
     }
 
     @Get(TournamentMatches.class)
-    public TournamentMatches getTournamentMatches(final Map<String, Object> query, final PipelineContext context) {
+    public TournamentMatches getTournamentMatches(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final String tournamentCode = (String)query.get("tournamentCode");
         Utilities.checkNotNull(platform, "platform", tournamentCode, "tournamentCode");
 
-        return get(TournamentMatches.class, UniqueKeys.forTournamentMatchesDtoQuery(query));
+        return get(TournamentMatches.class, UniqueKeys.forTournamentMatchesDataQuery(query));
     }
 
     @Get(VerificationString.class)
-    public VerificationString getVerificationString(final Map<String, Object> query, final PipelineContext context) {
+    public VerificationString getVerificationString(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Number summonerId = (Number)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
-        return get(VerificationString.class, UniqueKeys.forVerificationStringDtoQuery(query));
+        return get(VerificationString.class, UniqueKeys.forVerificationStringDataQuery(query));
     }
 
     @Get(Versions.class)
-    public Versions getVersions(final Map<String, Object> query, final PipelineContext context) {
+    public Versions getVersions(final java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
 
-        return get(Versions.class, UniqueKeys.forVersionsDtoQuery(query));
+        return get(Versions.class, UniqueKeys.forVersionsDataQuery(query));
     }
 
     @Override
@@ -1510,7 +1505,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         }
     }
 
-    private <T extends DataObject> void put(final Class<T> clazz, final int key, final T value) {
+    private <T extends CoreData> void put(final Class<T> clazz, final int key, final T value) {
         final Transaction transaction = xodus.beginTransaction();
         try {
             final Store store = xodus.openStore(clazz.getCanonicalName(), STORE_CONFIG, transaction);
@@ -1520,7 +1515,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         }
     }
 
-    private <T extends DataObject> void put(final Class<T> clazz, final Iterable<Integer> keys, final Iterable<T> values) {
+    private <T extends CoreData> void put(final Class<T> clazz, final Iterable<Integer> keys, final Iterable<T> values) {
         final Transaction transaction = xodus.beginTransaction();
         try {
             final Store store = xodus.openStore(clazz.getCanonicalName(), STORE_CONFIG, transaction);
@@ -1539,7 +1534,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     public void putChampion(final Champion champion, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<Champion> values = new ArrayList<>();
-        for(final int key : UniqueKeys.forChampionDto(champion)) {
+        for(final int key : UniqueKeys.forChampionData(champion)) {
             keys.add(key);
             values.add(champion);
         }
@@ -1549,54 +1544,54 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Champion.class, keys, values);
     }
 
-    @Put(ChampionList.class)
-    public void putChampionList(final ChampionList list, final PipelineContext context) {
-        put(ChampionList.class, UniqueKeys.forChampionListDto(list), list);
-        putManyChampion(list.getData().values(), context);
-    }
-
     @Put(ChampionMasteries.class)
     public void putChampionMasteries(final ChampionMasteries masteries, final PipelineContext context) {
-        put(ChampionMasteries.class, UniqueKeys.forChampionMasteriesDto(masteries), masteries);
+        put(ChampionMasteries.class, UniqueKeys.forChampionMasteriesData(masteries), masteries);
         putManyChampionMastery(masteries, context);
     }
 
     @Put(ChampionMastery.class)
     public void putChampionMastery(final ChampionMastery mastery, final PipelineContext context) {
-        put(ChampionMastery.class, UniqueKeys.forChampionMasteryDto(mastery), mastery);
+        put(ChampionMastery.class, UniqueKeys.forChampionMasteryData(mastery), mastery);
     }
 
     @Put(ChampionMasteryScore.class)
     public void putChampionMasteryScore(final ChampionMasteryScore score, final PipelineContext context) {
-        put(ChampionMasteryScore.class, UniqueKeys.forChampionMasteryScoreDto(score), score);
+        put(ChampionMasteryScore.class, UniqueKeys.forChampionMasteryScoreData(score), score);
     }
 
-    @Put(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public void putChampionStatus(final com.merakianalytics.orianna.types.dto.champion.Champion champion, final PipelineContext context) {
-        put(com.merakianalytics.orianna.types.dto.champion.Champion.class, UniqueKeys.forChampionStatusDto(champion), champion);
+    @Put(Champions.class)
+    public void putChampions(final Champions list, final PipelineContext context) {
+        put(Champions.class, UniqueKeys.forChampionsData(list), list);
+        putManyChampion(list, context);
     }
 
-    @Put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public void putChampionStatusList(final com.merakianalytics.orianna.types.dto.champion.ChampionList champions, final PipelineContext context) {
-        put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, UniqueKeys.forChampionStatusListDto(champions), champions);
-        putManyChampionStatus(champions.getChampions(), context);
+    @Put(ChampionStatus.class)
+    public void putChampionStatus(final ChampionStatus champion, final PipelineContext context) {
+        put(ChampionStatus.class, UniqueKeys.forChampionStatusData(champion), champion);
     }
 
-    @Put(CurrentGameInfo.class)
-    public void putCurrentGameInfo(final CurrentGameInfo game, final PipelineContext context) {
-        put(CurrentGameInfo.class, UniqueKeys.forCurrentGameInfoDto(game), game);
+    @Put(ChampionStatuses.class)
+    public void putChampionStatusList(final ChampionStatuses champions, final PipelineContext context) {
+        put(ChampionStatuses.class, UniqueKeys.forChampionStatusesData(champions), champions);
+        putManyChampionStatus(champions, context);
     }
 
-    @Put(FeaturedGames.class)
-    public void putFeaturedGames(final FeaturedGames games, final PipelineContext context) {
-        put(FeaturedGames.class, UniqueKeys.forFeaturedGamesDto(games), games);
+    @Put(CurrentMatch.class)
+    public void putCurrentMatch(final CurrentMatch game, final PipelineContext context) {
+        put(CurrentMatch.class, UniqueKeys.forCurrentMatchData(game), game);
+    }
+
+    @Put(FeaturedMatches.class)
+    public void putFeaturedMatches(final FeaturedMatches games, final PipelineContext context) {
+        put(FeaturedMatches.class, UniqueKeys.forFeaturedMatchesData(games), games);
     }
 
     @Put(Item.class)
     public void putItem(final Item item, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<Item> values = new ArrayList<>();
-        for(final int key : UniqueKeys.forItemDto(item)) {
+        for(final int key : UniqueKeys.forItemData(item)) {
             keys.add(key);
             values.add(item);
         }
@@ -1606,33 +1601,38 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Item.class, keys, values);
     }
 
-    @Put(ItemList.class)
-    public void putItemList(final ItemList list, final PipelineContext context) {
-        put(ItemList.class, UniqueKeys.forItemListDto(list), list);
-        putManyItem(list.getData().values(), context);
+    @Put(Items.class)
+    public void putItems(final Items list, final PipelineContext context) {
+        put(Items.class, UniqueKeys.forItemsData(list), list);
+        putManyItem(list, context);
     }
 
     @Put(Languages.class)
     public void putLanguages(final Languages languages, final PipelineContext context) {
-        put(Languages.class, UniqueKeys.forLanguagesDto(languages), languages);
+        put(Languages.class, UniqueKeys.forLanguagesData(languages), languages);
     }
 
     @Put(LanguageStrings.class)
     public void putLanguageStrings(final LanguageStrings strings, final PipelineContext context) {
-        put(LanguageStrings.class, UniqueKeys.forLanguageStringsDto(strings), strings);
+        put(LanguageStrings.class, UniqueKeys.forLanguageStringsData(strings), strings);
     }
 
-    @Put(LeagueList.class)
-    public void putLeagueList(final LeagueList list, final PipelineContext context) {
-        final int[] keys = UniqueKeys.forLeagueListDto(list);
+    @Put(League.class)
+    public void putLeague(final League list, final PipelineContext context) {
+        final int[] keys = UniqueKeys.forLeagueData(list);
         final List<Integer> keyList = new ArrayList<>(keys.length);
-        final List<LeagueList> valueList = new ArrayList<>(keys.length);
+        final List<League> valueList = new ArrayList<>(keys.length);
         for(final int key : keys) {
             keyList.add(key);
             valueList.add(list);
         }
 
-        put(LeagueList.class, keyList, valueList);
+        put(League.class, keyList, valueList);
+    }
+
+    @Put(LeaguePositions.class)
+    public void putLeaguePositions(final LeaguePositions positions, final PipelineContext context) {
+        put(LeaguePositions.class, UniqueKeys.forLeaguePositionsData(positions), positions);
     }
 
     @PutMany(Summoner.class)
@@ -1640,7 +1640,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<Summoner> values = new ArrayList<>();
         for(final Summoner summoner : summoners) {
-            for(final int key : UniqueKeys.forSummonerDto(summoner)) {
+            for(final int key : UniqueKeys.forSummonerData(summoner)) {
                 keys.add(key);
                 values.add(summoner);
             }
@@ -1656,7 +1656,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<Champion> values = new ArrayList<>();
         for(final Champion champion : champions) {
-            for(final int key : UniqueKeys.forChampionDto(champion)) {
+            for(final int key : UniqueKeys.forChampionData(champion)) {
                 keys.add(key);
                 values.add(champion);
             }
@@ -1667,27 +1667,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Champion.class, keys, values);
     }
 
-    @PutMany(ChampionList.class)
-    public void putManyChampionList(final Iterable<ChampionList> lists, final PipelineContext context) {
-        final ArrayList<Integer> keys = new ArrayList<>();
-        for(final ChampionList list : lists) {
-            keys.add(UniqueKeys.forChampionListDto(list));
-        }
-        keys.trimToSize();
-
-        put(ChampionList.class, keys, lists);
-        final List<List<Champion>> toStore = new ArrayList<>(keys.size());
-        for(final ChampionList list : lists) {
-            toStore.add(new ArrayList<>(list.getData().values()));
-        }
-        putManyChampion(Iterables.concat(toStore), context);
-    }
-
     @PutMany(ChampionMasteries.class)
     public void putManyChampionMasteries(final Iterable<ChampionMasteries> lists, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         for(final ChampionMasteries list : lists) {
-            keys.add(UniqueKeys.forChampionMasteriesDto(list));
+            keys.add(UniqueKeys.forChampionMasteriesData(list));
         }
         keys.trimToSize();
 
@@ -1699,7 +1683,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     public void putManyChampionMastery(final Iterable<ChampionMastery> masteries, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         for(final ChampionMastery mastery : masteries) {
-            keys.add(UniqueKeys.forChampionMasteryDto(mastery));
+            keys.add(UniqueKeys.forChampionMasteryData(mastery));
         }
         keys.trimToSize();
 
@@ -1710,60 +1694,68 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     public void putManyChampionMasteryScore(final Iterable<ChampionMasteryScore> scores, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         for(final ChampionMasteryScore score : scores) {
-            keys.add(UniqueKeys.forChampionMasteryScoreDto(score));
+            keys.add(UniqueKeys.forChampionMasteryScoreData(score));
         }
         keys.trimToSize();
 
         put(ChampionMasteryScore.class, keys, scores);
     }
 
-    @PutMany(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public void putManyChampionStatus(final Iterable<com.merakianalytics.orianna.types.dto.champion.Champion> champions, final PipelineContext context) {
+    @PutMany(Champions.class)
+    public void putManyChampions(final Iterable<Champions> lists, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        for(final com.merakianalytics.orianna.types.dto.champion.Champion champion : champions) {
-            keys.add(UniqueKeys.forChampionStatusDto(champion));
+        for(final Champions list : lists) {
+            keys.add(UniqueKeys.forChampionsData(list));
         }
         keys.trimToSize();
 
-        put(com.merakianalytics.orianna.types.dto.champion.Champion.class, keys, champions);
+        put(Champions.class, keys, lists);
+        putManyChampion(Iterables.concat(lists), context);
     }
 
-    @PutMany(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public void putManyChampionStatusList(final Iterable<com.merakianalytics.orianna.types.dto.champion.ChampionList> lists, final PipelineContext context) {
+    @PutMany(ChampionStatus.class)
+    public void putManyChampionStatus(final Iterable<ChampionStatus> champions, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        for(final com.merakianalytics.orianna.types.dto.champion.ChampionList list : lists) {
-            keys.add(UniqueKeys.forChampionStatusListDto(list));
+        for(final ChampionStatus champion : champions) {
+            keys.add(UniqueKeys.forChampionStatusData(champion));
         }
         keys.trimToSize();
 
-        put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, keys, lists);
-        final List<List<com.merakianalytics.orianna.types.dto.champion.Champion>> toStore = new ArrayList<>(keys.size());
-        for(final com.merakianalytics.orianna.types.dto.champion.ChampionList list : lists) {
-            toStore.add(list.getChampions());
-        }
-        putManyChampionStatus(Iterables.concat(toStore), context);
+        put(ChampionStatus.class, keys, champions);
     }
 
-    @PutMany(CurrentGameInfo.class)
-    public void putManyCurrentGameInfo(final Iterable<CurrentGameInfo> games, final PipelineContext context) {
+    @PutMany(ChampionStatuses.class)
+    public void putManyChampionStatusList(final Iterable<ChampionStatuses> lists, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        for(final CurrentGameInfo game : games) {
-            keys.add(UniqueKeys.forCurrentGameInfoDto(game));
+        for(final ChampionStatuses list : lists) {
+            keys.add(UniqueKeys.forChampionStatusesData(list));
         }
         keys.trimToSize();
 
-        put(CurrentGameInfo.class, keys, games);
+        put(ChampionStatuses.class, keys, lists);
+        putManyChampionStatus(Iterables.concat(lists), context);
     }
 
-    @PutMany(FeaturedGames.class)
-    public void putManyFeaturedGames(final Iterable<FeaturedGames> games, final PipelineContext context) {
+    @PutMany(CurrentMatch.class)
+    public void putManyCurrentMatch(final Iterable<CurrentMatch> games, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        for(final FeaturedGames game : games) {
-            keys.add(UniqueKeys.forFeaturedGamesDto(game));
+        for(final CurrentMatch game : games) {
+            keys.add(UniqueKeys.forCurrentMatchData(game));
         }
         keys.trimToSize();
 
-        put(FeaturedGames.class, keys, games);
+        put(CurrentMatch.class, keys, games);
+    }
+
+    @PutMany(FeaturedMatches.class)
+    public void putManyFeaturedMatches(final Iterable<FeaturedMatches> games, final PipelineContext context) {
+        final ArrayList<Integer> keys = new ArrayList<>();
+        for(final FeaturedMatches game : games) {
+            keys.add(UniqueKeys.forFeaturedMatchesData(game));
+        }
+        keys.trimToSize();
+
+        put(FeaturedMatches.class, keys, games);
     }
 
     @PutMany(Item.class)
@@ -1771,7 +1763,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<Item> values = new ArrayList<>();
         for(final Item item : items) {
-            for(final int key : UniqueKeys.forItemDto(item)) {
+            for(final int key : UniqueKeys.forItemData(item)) {
                 keys.add(key);
                 values.add(item);
             }
@@ -1782,27 +1774,23 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Item.class, keys, values);
     }
 
-    @PutMany(ItemList.class)
-    public void putManyItemList(final Iterable<ItemList> lists, final PipelineContext context) {
+    @PutMany(Items.class)
+    public void putManyItems(final Iterable<Items> lists, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        for(final ItemList list : lists) {
-            keys.add(UniqueKeys.forItemListDto(list));
+        for(final Items list : lists) {
+            keys.add(UniqueKeys.forItemsData(list));
         }
         keys.trimToSize();
 
-        put(ItemList.class, keys, lists);
-        final List<List<Item>> toStore = new ArrayList<>(keys.size());
-        for(final ItemList list : lists) {
-            toStore.add(new ArrayList<>(list.getData().values()));
-        }
-        putManyItem(Iterables.concat(toStore), context);
+        put(Items.class, keys, lists);
+        putManyItem(Iterables.concat(lists), context);
     }
 
     @PutMany(Languages.class)
     public void putManyLanguages(final Iterable<Languages> languages, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         for(final Languages language : languages) {
-            keys.add(UniqueKeys.forLanguagesDto(language));
+            keys.add(UniqueKeys.forLanguagesData(language));
         }
         keys.trimToSize();
 
@@ -1813,19 +1801,19 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     public void putManyLanguageStrings(final Iterable<LanguageStrings> strings, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         for(final LanguageStrings string : strings) {
-            keys.add(UniqueKeys.forLanguageStringsDto(string));
+            keys.add(UniqueKeys.forLanguageStringsData(string));
         }
         keys.trimToSize();
 
         put(LanguageStrings.class, keys, strings);
     }
 
-    @PutMany(LeagueList.class)
-    public void putManyLeagueList(final Iterable<LeagueList> lists, final PipelineContext context) {
+    @PutMany(League.class)
+    public void putManyLeague(final Iterable<League> lists, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        final ArrayList<LeagueList> values = new ArrayList<>();
-        for(final LeagueList list : lists) {
-            for(final int key : UniqueKeys.forLeagueListDto(list)) {
+        final ArrayList<League> values = new ArrayList<>();
+        for(final League list : lists) {
+            for(final int key : UniqueKeys.forLeagueData(list)) {
                 keys.add(key);
                 values.add(list);
             }
@@ -1833,31 +1821,26 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         keys.trimToSize();
         values.trimToSize();
 
-        put(LeagueList.class, keys, values);
+        put(League.class, keys, values);
     }
 
-    @PutMany(MapData.class)
-    public void putManyMapData(final Iterable<MapData> maps, final PipelineContext context) {
+    @PutMany(LeaguePositions.class)
+    public void putManyLeaguePositions(final Iterable<LeaguePositions> positions, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        for(final MapData map : maps) {
-            keys.add(UniqueKeys.forMapDataDto(map));
+        for(final LeaguePositions position : positions) {
+            keys.add(UniqueKeys.forLeaguePositionsData(position));
         }
         keys.trimToSize();
 
-        put(MapData.class, keys, maps);
-        final List<List<MapDetails>> toStore = new ArrayList<>(keys.size());
-        for(final MapData map : maps) {
-            toStore.add(new ArrayList<>(map.getData().values()));
-        }
-        putManyMapDetails(Iterables.concat(toStore), context);
+        put(LeaguePositions.class, keys, positions);
     }
 
-    @PutMany(MapDetails.class)
-    public void putManyMapDetails(final Iterable<MapDetails> maps, final PipelineContext context) {
+    @PutMany(Map.class)
+    public void putManyMap(final Iterable<Map> maps, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        final ArrayList<MapDetails> values = new ArrayList<>();
-        for(final MapDetails map : maps) {
-            for(final int key : UniqueKeys.forMapDetailsDto(map)) {
+        final ArrayList<Map> values = new ArrayList<>();
+        for(final Map map : maps) {
+            for(final int key : UniqueKeys.forMapData(map)) {
                 keys.add(key);
                 values.add(map);
             }
@@ -1865,7 +1848,31 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         keys.trimToSize();
         values.trimToSize();
 
-        put(MapDetails.class, keys, values);
+        put(Map.class, keys, values);
+    }
+
+    @PutMany(Maps.class)
+    public void putManyMaps(final Iterable<Maps> maps, final PipelineContext context) {
+        final ArrayList<Integer> keys = new ArrayList<>();
+        for(final Maps map : maps) {
+            keys.add(UniqueKeys.forMapsData(map));
+        }
+        keys.trimToSize();
+
+        put(Maps.class, keys, maps);
+        putManyMap(Iterables.concat(maps), context);
+    }
+
+    @PutMany(Masteries.class)
+    public void putManyMasteries(final Iterable<Masteries> lists, final PipelineContext context) {
+        final ArrayList<Integer> keys = new ArrayList<>();
+        for(final Masteries list : lists) {
+            keys.add(UniqueKeys.forMasteriesData(list));
+        }
+        keys.trimToSize();
+
+        put(Masteries.class, keys, lists);
+        putManyMastery(Iterables.concat(lists), context);
     }
 
     @PutMany(Mastery.class)
@@ -1873,7 +1880,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<Mastery> values = new ArrayList<>();
         for(final Mastery item : items) {
-            for(final int key : UniqueKeys.forMasteryDto(item)) {
+            for(final int key : UniqueKeys.forMasteryData(item)) {
                 keys.add(key);
                 values.add(item);
             }
@@ -1884,76 +1891,45 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Mastery.class, keys, values);
     }
 
-    @PutMany(MasteryList.class)
-    public void putManyMasteryList(final Iterable<MasteryList> lists, final PipelineContext context) {
-        final ArrayList<Integer> keys = new ArrayList<>();
-        for(final MasteryList list : lists) {
-            keys.add(UniqueKeys.forMasteryListDto(list));
-        }
-        keys.trimToSize();
-
-        put(MasteryList.class, keys, lists);
-        final List<List<Mastery>> toStore = new ArrayList<>();
-        for(final MasteryList list : lists) {
-            toStore.add(new ArrayList<>(list.getData().values()));
-        }
-        putManyMastery(Iterables.concat(toStore), context);
-    }
-
     @PutMany(Match.class)
     public void putManyMatch(final Iterable<Match> matches, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         for(final Match match : matches) {
-            keys.add(UniqueKeys.forMatchDto(match));
+            keys.add(UniqueKeys.forMatchData(match));
         }
         keys.trimToSize();
 
         put(Match.class, keys, matches);
     }
 
-    @PutMany(MatchTimeline.class)
-    public void putManyMatchTimeline(final Iterable<MatchTimeline> timelines, final PipelineContext context) {
+    @PutMany(ProfileIcon.class)
+    public void putManyProfileIcon(final Iterable<ProfileIcon> icons, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        for(final MatchTimeline timeline : timelines) {
-            keys.add(UniqueKeys.forMatchTimelineDto(timeline));
+        for(final ProfileIcon icon : icons) {
+            keys.add(UniqueKeys.forProfileIconData(icon));
         }
         keys.trimToSize();
 
-        put(MatchTimeline.class, keys, timelines);
+        put(ProfileIcon.class, keys, icons);
     }
 
-    @PutMany(ProfileIconData.class)
-    public void putManyProfileIconData(final Iterable<ProfileIconData> icons, final PipelineContext context) {
+    @PutMany(ProfileIcons.class)
+    public void putManyProfileIcons(final Iterable<ProfileIcons> icons, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        for(final ProfileIconData icon : icons) {
-            keys.add(UniqueKeys.forProfileIconDataDto(icon));
+        for(final ProfileIcons icon : icons) {
+            keys.add(UniqueKeys.forProfileIconsData(icon));
         }
         keys.trimToSize();
 
-        put(ProfileIconData.class, keys, icons);
-        final List<List<ProfileIconDetails>> toStore = new ArrayList<>(keys.size());
-        for(final ProfileIconData map : icons) {
-            toStore.add(new ArrayList<>(map.getData().values()));
-        }
-        putManyProfileIconDetails(Iterables.concat(toStore), context);
-    }
-
-    @PutMany(ProfileIconDetails.class)
-    public void putManyProfileIconDetails(final Iterable<ProfileIconDetails> icons, final PipelineContext context) {
-        final ArrayList<Integer> keys = new ArrayList<>();
-        for(final ProfileIconDetails icon : icons) {
-            keys.add(UniqueKeys.forProfileIconDetailsDto(icon));
-        }
-        keys.trimToSize();
-
-        put(ProfileIconDetails.class, keys, icons);
+        put(ProfileIcons.class, keys, icons);
+        putManyProfileIcon(Iterables.concat(icons), context);
     }
 
     @PutMany(Realm.class)
     public void putManyRealm(final Iterable<Realm> realms, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         for(final Realm realm : realms) {
-            keys.add(UniqueKeys.forRealmDto(realm));
+            keys.add(UniqueKeys.forRealmData(realm));
         }
         keys.trimToSize();
 
@@ -1965,7 +1941,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<ReforgedRune> values = new ArrayList<>();
         for(final ReforgedRune rune : runes) {
-            for(final int key : UniqueKeys.forReforgedRuneDto(rune)) {
+            for(final int key : UniqueKeys.forReforgedRuneData(rune)) {
                 keys.add(key);
                 values.add(rune);
             }
@@ -1976,26 +1952,16 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(ReforgedRune.class, keys, values);
     }
 
-    @PutMany(ReforgedRuneTree.class)
-    public void putManyReforgedRuneTree(final Iterable<ReforgedRuneTree> trees, final PipelineContext context) {
+    @PutMany(ReforgedRunes.class)
+    public void putManyReforgedRunes(final Iterable<ReforgedRunes> runes, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        for(final ReforgedRuneTree tree : trees) {
-            keys.add(UniqueKeys.forReforgedRuneTreeDto(tree));
+        for(final ReforgedRunes rune : runes) {
+            keys.add(UniqueKeys.forReforgedRunesData(rune));
         }
         keys.trimToSize();
 
-        put(ReforgedRuneTree.class, keys, trees);
-        final List<ReforgedRune> toStore = new ArrayList<>(keys.size());
-        for(final ReforgedRuneTree tree : trees) {
-            for(final ReforgedRunePath path : tree) {
-                for(final ReforgedRuneSlot slot : path.getSlots()) {
-                    for(final ReforgedRune rune : slot.getRunes()) {
-                        toStore.add(rune);
-                    }
-                }
-            }
-        }
-        putManyReforgedRune(toStore, context);
+        put(ReforgedRunes.class, keys, runes);
+        putManyReforgedRune(Iterables.concat(runes), context);
     }
 
     @PutMany(Rune.class)
@@ -2003,7 +1969,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<Rune> values = new ArrayList<>();
         for(final Rune rune : runes) {
-            for(final int key : UniqueKeys.forRuneDto(rune)) {
+            for(final int key : UniqueKeys.forRuneData(rune)) {
                 keys.add(key);
                 values.add(rune);
             }
@@ -2014,42 +1980,27 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Rune.class, keys, values);
     }
 
-    @PutMany(RuneList.class)
-    public void putManyRuneList(final Iterable<RuneList> lists, final PipelineContext context) {
+    @PutMany(Runes.class)
+    public void putManyRunes(final Iterable<Runes> lists, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        for(final RuneList list : lists) {
-            keys.add(UniqueKeys.forRuneListDto(list));
+        for(final Runes list : lists) {
+            keys.add(UniqueKeys.forRunesData(list));
         }
         keys.trimToSize();
 
-        put(RuneList.class, keys, lists);
-        final List<List<Rune>> toStore = new ArrayList<>(keys.size());
-        for(final RuneList list : lists) {
-            toStore.add(new ArrayList<>(list.getData().values()));
-        }
-        putManyRune(Iterables.concat(toStore), context);
+        put(Runes.class, keys, lists);
+        putManyRune(Iterables.concat(lists), context);
     }
 
     @PutMany(ShardStatus.class)
     public void putManyShardStatus(final Iterable<ShardStatus> statuses, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         for(final ShardStatus status : statuses) {
-            keys.add(UniqueKeys.forShardStatusDto(status));
+            keys.add(UniqueKeys.forShardStatusData(status));
         }
         keys.trimToSize();
 
         put(ShardStatus.class, keys, statuses);
-    }
-
-    @PutMany(SummonerPositions.class)
-    public void putManySummonerPositions(final Iterable<SummonerPositions> positions, final PipelineContext context) {
-        final ArrayList<Integer> keys = new ArrayList<>();
-        for(final SummonerPositions position : positions) {
-            keys.add(UniqueKeys.forSummonerPositionsDto(position));
-        }
-        keys.trimToSize();
-
-        put(SummonerPositions.class, keys, positions);
     }
 
     @PutMany(SummonerSpell.class)
@@ -2057,7 +2008,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<SummonerSpell> values = new ArrayList<>();
         for(final SummonerSpell summonerSpell : summonerSpells) {
-            for(final int key : UniqueKeys.forSummonerSpellDto(summonerSpell)) {
+            for(final int key : UniqueKeys.forSummonerSpellData(summonerSpell)) {
                 keys.add(key);
                 values.add(summonerSpell);
             }
@@ -2068,27 +2019,34 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(SummonerSpell.class, keys, values);
     }
 
-    @PutMany(SummonerSpellList.class)
-    public void putManySummonerSpellList(final Iterable<SummonerSpellList> lists, final PipelineContext context) {
+    @PutMany(SummonerSpells.class)
+    public void putManySummonerSpells(final Iterable<SummonerSpells> lists, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        for(final SummonerSpellList list : lists) {
-            keys.add(UniqueKeys.forSummonerSpellListDto(list));
+        for(final SummonerSpells list : lists) {
+            keys.add(UniqueKeys.forSummonerSpellsData(list));
         }
         keys.trimToSize();
 
-        put(SummonerSpellList.class, keys, lists);
-        final List<List<SummonerSpell>> toStore = new ArrayList<>(keys.size());
-        for(final SummonerSpellList list : lists) {
-            toStore.add(new ArrayList<>(list.getData().values()));
+        put(SummonerSpells.class, keys, lists);
+        putManySummonerSpell(Iterables.concat(lists), context);
+    }
+
+    @PutMany(Timeline.class)
+    public void putManyTimeline(final Iterable<Timeline> timelines, final PipelineContext context) {
+        final ArrayList<Integer> keys = new ArrayList<>();
+        for(final Timeline timeline : timelines) {
+            keys.add(UniqueKeys.forTimelineData(timeline));
         }
-        putManySummonerSpell(Iterables.concat(toStore), context);
+        keys.trimToSize();
+
+        put(Timeline.class, keys, timelines);
     }
 
     @PutMany(TournamentMatches.class)
     public void putManyTournamentMatches(final Iterable<TournamentMatches> matches, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         for(final TournamentMatches match : matches) {
-            keys.add(UniqueKeys.forTournamentMatchesDto(match));
+            keys.add(UniqueKeys.forTournamentMatchesData(match));
         }
         keys.trimToSize();
 
@@ -2099,7 +2057,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     public void putManyVerificationString(final Iterable<VerificationString> strings, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         for(final VerificationString string : strings) {
-            keys.add(UniqueKeys.forVerificationStringDto(string));
+            keys.add(UniqueKeys.forVerificationStringData(string));
         }
         keys.trimToSize();
 
@@ -2110,38 +2068,44 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     public void putManyVersions(final Iterable<Versions> versions, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         for(final Versions version : versions) {
-            keys.add(UniqueKeys.forVersionsDto(version));
+            keys.add(UniqueKeys.forVersionsData(version));
         }
         keys.trimToSize();
 
         put(Versions.class, keys, versions);
     }
 
-    @Put(MapData.class)
-    public void putMapData(final MapData data, final PipelineContext context) {
-        put(MapData.class, UniqueKeys.forMapDataDto(data), data);
-        putManyMapDetails(data.getData().values(), context);
-    }
-
-    @Put(MapDetails.class)
-    public void putMapDetails(final MapDetails map, final PipelineContext context) {
+    @Put(Map.class)
+    public void putMap(final Map map, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
-        final ArrayList<MapDetails> values = new ArrayList<>();
-        for(final int key : UniqueKeys.forMapDetailsDto(map)) {
+        final ArrayList<Map> values = new ArrayList<>();
+        for(final int key : UniqueKeys.forMapData(map)) {
             keys.add(key);
             values.add(map);
         }
         keys.trimToSize();
         values.trimToSize();
 
-        put(MapDetails.class, keys, values);
+        put(Map.class, keys, values);
+    }
+
+    @Put(Maps.class)
+    public void putMaps(final Maps data, final PipelineContext context) {
+        put(Maps.class, UniqueKeys.forMapsData(data), data);
+        putManyMap(data, context);
+    }
+
+    @Put(Masteries.class)
+    public void putMasteries(final Masteries list, final PipelineContext context) {
+        put(Masteries.class, UniqueKeys.forMasteriesData(list), list);
+        putManyMastery(list, context);
     }
 
     @Put(Mastery.class)
     public void putMastery(final Mastery mastery, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<Mastery> values = new ArrayList<>();
-        for(final int key : UniqueKeys.forMasteryDto(mastery)) {
+        for(final int key : UniqueKeys.forMasteryData(mastery)) {
             keys.add(key);
             values.add(mastery);
         }
@@ -2151,43 +2115,32 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Mastery.class, keys, values);
     }
 
-    @Put(MasteryList.class)
-    public void putMasteryList(final MasteryList list, final PipelineContext context) {
-        put(MasteryList.class, UniqueKeys.forMasteryListDto(list), list);
-        putManyMastery(list.getData().values(), context);
-    }
-
     @Put(Match.class)
     public void putMatch(final Match match, final PipelineContext context) {
-        put(Match.class, UniqueKeys.forMatchDto(match), match);
+        put(Match.class, UniqueKeys.forMatchData(match), match);
     }
 
-    @Put(MatchTimeline.class)
-    public void putMatchTimeline(final MatchTimeline timeline, final PipelineContext context) {
-        put(MatchTimeline.class, UniqueKeys.forMatchTimelineDto(timeline), timeline);
+    @Put(ProfileIcon.class)
+    public void putProfileIcon(final ProfileIcon icon, final PipelineContext context) {
+        put(ProfileIcon.class, UniqueKeys.forProfileIconData(icon), icon);
     }
 
-    @Put(ProfileIconData.class)
-    public void putProfileIconData(final ProfileIconData data, final PipelineContext context) {
-        put(ProfileIconData.class, UniqueKeys.forProfileIconDataDto(data), data);
-        putManyProfileIconDetails(data.getData().values(), context);
-    }
-
-    @Put(ProfileIconDetails.class)
-    public void putProfileIconDetails(final ProfileIconDetails icon, final PipelineContext context) {
-        put(ProfileIconDetails.class, UniqueKeys.forProfileIconDetailsDto(icon), icon);
+    @Put(ProfileIcons.class)
+    public void putProfileIcons(final ProfileIcons data, final PipelineContext context) {
+        put(ProfileIcons.class, UniqueKeys.forProfileIconsData(data), data);
+        putManyProfileIcon(data, context);
     }
 
     @Put(Realm.class)
     public void putRealm(final Realm realm, final PipelineContext context) {
-        put(Realm.class, UniqueKeys.forRealmDto(realm), realm);
+        put(Realm.class, UniqueKeys.forRealmData(realm), realm);
     }
 
     @Put(ReforgedRune.class)
     public void putReforgedRune(final ReforgedRune rune, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<ReforgedRune> values = new ArrayList<>();
-        for(final int key : UniqueKeys.forReforgedRuneDto(rune)) {
+        for(final int key : UniqueKeys.forReforgedRuneData(rune)) {
             keys.add(key);
             values.add(rune);
         }
@@ -2197,25 +2150,17 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(ReforgedRune.class, keys, values);
     }
 
-    @Put(ReforgedRuneTree.class)
-    public void putReforgedRuneTree(final ReforgedRuneTree tree, final PipelineContext context) {
-        put(ReforgedRuneTree.class, UniqueKeys.forReforgedRuneTreeDto(tree), tree);
-        final List<ReforgedRune> toStore = new ArrayList<>();
-        for(final ReforgedRunePath path : tree) {
-            for(final ReforgedRuneSlot slot : path.getSlots()) {
-                for(final ReforgedRune rune : slot.getRunes()) {
-                    toStore.add(rune);
-                }
-            }
-        }
-        putManyReforgedRune(toStore, context);
+    @Put(ReforgedRunes.class)
+    public void putReforgedRunes(final ReforgedRunes runes, final PipelineContext context) {
+        put(ReforgedRunes.class, UniqueKeys.forReforgedRunesData(runes), runes);
+        putManyReforgedRune(runes, context);
     }
 
     @Put(Rune.class)
     public void putRune(final Rune rune, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<Rune> values = new ArrayList<>();
-        for(final int key : UniqueKeys.forRuneDto(rune)) {
+        for(final int key : UniqueKeys.forRuneData(rune)) {
             keys.add(key);
             values.add(rune);
         }
@@ -2225,22 +2170,22 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Rune.class, keys, values);
     }
 
-    @Put(RuneList.class)
-    public void putRuneList(final RuneList list, final PipelineContext context) {
-        put(RuneList.class, UniqueKeys.forRuneListDto(list), list);
-        putManyRune(list.getData().values(), context);
+    @Put(Runes.class)
+    public void putRunes(final Runes list, final PipelineContext context) {
+        put(Runes.class, UniqueKeys.forRunesData(list), list);
+        putManyRune(list, context);
     }
 
     @Put(ShardStatus.class)
     public void putShardStatus(final ShardStatus status, final PipelineContext context) {
-        put(ShardStatus.class, UniqueKeys.forShardStatusDto(status), status);
+        put(ShardStatus.class, UniqueKeys.forShardStatusData(status), status);
     }
 
     @Put(Summoner.class)
     public void putSummoner(final Summoner summoner, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<Summoner> values = new ArrayList<>();
-        for(final int key : UniqueKeys.forSummonerDto(summoner)) {
+        for(final int key : UniqueKeys.forSummonerData(summoner)) {
             keys.add(key);
             values.add(summoner);
         }
@@ -2250,16 +2195,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Summoner.class, keys, values);
     }
 
-    @Put(SummonerPositions.class)
-    public void putSummonerPositions(final SummonerPositions positions, final PipelineContext context) {
-        put(SummonerPositions.class, UniqueKeys.forSummonerPositionsDto(positions), positions);
-    }
-
     @Put(SummonerSpell.class)
     public void putSummonerSpell(final SummonerSpell summonerSpell, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
         final ArrayList<SummonerSpell> values = new ArrayList<>();
-        for(final int key : UniqueKeys.forSummonerSpellDto(summonerSpell)) {
+        for(final int key : UniqueKeys.forSummonerSpellData(summonerSpell)) {
             keys.add(key);
             values.add(summonerSpell);
         }
@@ -2269,24 +2209,29 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(SummonerSpell.class, keys, values);
     }
 
-    @Put(SummonerSpellList.class)
-    public void putSummonerSpellList(final SummonerSpellList list, final PipelineContext context) {
-        put(SummonerSpellList.class, UniqueKeys.forSummonerSpellListDto(list), list);
-        putManySummonerSpell(list.getData().values(), context);
+    @Put(SummonerSpells.class)
+    public void putSummonerSpells(final SummonerSpells list, final PipelineContext context) {
+        put(SummonerSpells.class, UniqueKeys.forSummonerSpellsData(list), list);
+        putManySummonerSpell(list, context);
+    }
+
+    @Put(Timeline.class)
+    public void putTimeline(final Timeline timeline, final PipelineContext context) {
+        put(Timeline.class, UniqueKeys.forTimelineData(timeline), timeline);
     }
 
     @Put(TournamentMatches.class)
     public void putTournamentMatches(final TournamentMatches matches, final PipelineContext context) {
-        put(TournamentMatches.class, UniqueKeys.forTournamentMatchesDto(matches), matches);
+        put(TournamentMatches.class, UniqueKeys.forTournamentMatchesData(matches), matches);
     }
 
     @Put(VerificationString.class)
     public void putVerificationString(final VerificationString string, final PipelineContext context) {
-        put(VerificationString.class, UniqueKeys.forVerificationStringDto(string), string);
+        put(VerificationString.class, UniqueKeys.forVerificationStringData(string), string);
     }
 
     @Put(Versions.class)
     public void putVersions(final Versions versions, final PipelineContext context) {
-        put(Versions.class, UniqueKeys.forVersionsDto(versions), versions);
+        put(Versions.class, UniqueKeys.forVersionsData(versions), versions);
     }
 }
