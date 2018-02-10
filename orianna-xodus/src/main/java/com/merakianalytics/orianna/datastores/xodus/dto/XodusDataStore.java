@@ -2,6 +2,7 @@ package com.merakianalytics.orianna.datastores.xodus.dto;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -144,6 +145,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     private static final Logger LOGGER = LoggerFactory.getLogger(XodusDataStore.class);
     private static final StoreConfig STORE_CONFIG = StoreConfig.WITHOUT_DUPLICATES_WITH_PREFIXING;
 
+    private static String getCurrentVersion(final Platform platform, final PipelineContext context) {
+        final Realm realm = context.getPipeline().get(Realm.class, ImmutableMap.<String, Object> of("platform", platform));
+        return realm.getV();
+    }
+
     private static <T extends DataObject> ByteIterable toByteIterable(final T value) {
         return new CompoundByteIterable(new ByteIterable[] {LongBinding.longToEntry(System.currentTimeMillis()), new ArrayByteIterable(value.toBytes())}, 2);
     }
@@ -244,7 +250,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @Get(Champion.class)
-    public Champion getChampion(final Map<String, Object> query, final PipelineContext context) {
+    public Champion getChampion(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
@@ -252,13 +258,49 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final String key = (String)query.get("key");
         Utilities.checkAtLeastOneNotNull(id, "id", name, "name", key, "key");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
         return get(Champion.class, UniqueKeys.forChampionDtoQuery(query));
     }
 
     @Get(ChampionList.class)
-    public ChampionList getChampionList(final Map<String, Object> query, final PipelineContext context) {
+    public ChampionList getChampionList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData", "dataById"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+
+            if(!query.containsKey("queryById")) {
+                query.put("queryById", Boolean.FALSE);
+            }
+        }
 
         return get(ChampionList.class, UniqueKeys.forChampionListDtoQuery(query));
     }
@@ -301,9 +343,14 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @Get(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public com.merakianalytics.orianna.types.dto.champion.ChampionList getChampionStatusList(final Map<String, Object> query, final PipelineContext context) {
+    public com.merakianalytics.orianna.types.dto.champion.ChampionList getChampionStatusList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
+
+        if(!query.containsKey("freeToPlay")) {
+            query = new HashMap<>(query);
+            query.put("freeToPlay", Boolean.FALSE);
+        }
 
         return get(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, UniqueKeys.forChampionStatusListDtoQuery(query));
     }
@@ -326,20 +373,52 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @Get(Item.class)
-    public Item getItem(final Map<String, Object> query, final PipelineContext context) {
+    public Item getItem(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
         final String name = (String)query.get("name");
         Utilities.checkAtLeastOneNotNull(id, "id", name, "name");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
         return get(Item.class, UniqueKeys.forItemDtoQuery(query));
     }
 
     @Get(ItemList.class)
-    public ItemList getItemList(final Map<String, Object> query, final PipelineContext context) {
+    public ItemList getItemList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
 
         return get(ItemList.class, UniqueKeys.forItemListDtoQuery(query));
     }
@@ -353,9 +432,21 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @Get(LanguageStrings.class)
-    public LanguageStrings getLanguageStrings(final Map<String, Object> query, final PipelineContext context) {
+    public LanguageStrings getLanguageStrings(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
 
         return get(LanguageStrings.class, UniqueKeys.forLanguageStringsDtoQuery(query));
     }
@@ -391,7 +482,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
 
     @SuppressWarnings("unchecked")
     @GetMany(Champion.class)
-    public CloseableIterator<Champion> getManyChampion(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Champion> getManyChampion(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
@@ -399,15 +490,47 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final Iterable<String> keys = (Iterable<String>)query.get("keys");
         Utilities.checkAtLeastOneNotNull(ids, "ids", names, "names", keys, "keys");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
         return get(Champion.class, UniqueKeys.forManyChampionDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(ChampionList.class)
-    public CloseableIterator<ChampionList> getManyChampionList(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<ChampionList> getManyChampionList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("locale", "includedData", "dataById"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+
+            if(!query.containsKey("dataById")) {
+                query.put("dataById", Boolean.FALSE);
+            }
+        }
 
         return get(ChampionList.class, UniqueKeys.forManyChampionListDtoQuery(query));
     }
@@ -456,10 +579,15 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
 
     @SuppressWarnings("unchecked")
     @GetMany(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public CloseableIterator<com.merakianalytics.orianna.types.dto.champion.ChampionList> getManyChampionStatusList(final Map<String, Object> query,
+    public CloseableIterator<com.merakianalytics.orianna.types.dto.champion.ChampionList> getManyChampionStatusList(Map<String, Object> query,
         final PipelineContext context) {
         final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
         Utilities.checkNotNull(iter, "platforms");
+
+        if(!query.containsKey("freeToPlay")) {
+            query = new HashMap<>(query);
+            query.put("freeToPlay", Boolean.FALSE);
+        }
 
         return get(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, UniqueKeys.forManyChampionStatusListDtoQuery(query));
     }
@@ -485,22 +613,50 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
 
     @SuppressWarnings("unchecked")
     @GetMany(Item.class)
-    public CloseableIterator<Item> getManyItem(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Item> getManyItem(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
         final Iterable<String> names = (Iterable<String>)query.get("names");
         Utilities.checkAtLeastOneNotNull(ids, "ids", names, "names");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
         return get(Item.class, UniqueKeys.forManyItemDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(ItemList.class)
-    public CloseableIterator<ItemList> getManyItemList(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<ItemList> getManyItemList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
 
         return get(ItemList.class, UniqueKeys.forManyItemListDtoQuery(query));
     }
@@ -516,10 +672,15 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
 
     @SuppressWarnings("unchecked")
     @GetMany(LanguageStrings.class)
-    public CloseableIterator<LanguageStrings> getManyLanguageStrings(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<LanguageStrings> getManyLanguageStrings(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("locales");
         Utilities.checkNotNull(platform, "platform", iter, "locales");
+
+        if(!query.containsKey("version")) {
+            query = new HashMap<>(query);
+            query.put("version", getCurrentVersion(platform, context));
+        }
 
         return get(LanguageStrings.class, UniqueKeys.forManyLanguageStringsDtoQuery(query));
     }
@@ -550,44 +711,89 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
 
     @SuppressWarnings("unchecked")
     @GetMany(MapData.class)
-    public CloseableIterator<MapData> getManyMapData(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<MapData> getManyMapData(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
+
+        if(!query.containsKey("locale")) {
+            query = new HashMap<>(query);
+            query.put("locale", platform.getDefaultLocale());
+        }
 
         return get(MapData.class, UniqueKeys.forManyMapDataDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(MapDetails.class)
-    public CloseableIterator<MapDetails> getManyMapDetails(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<MapDetails> getManyMapDetails(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
         final Iterable<String> names = (Iterable<String>)query.get("names");
         Utilities.checkAtLeastOneNotNull(ids, "ids", names, "names");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
 
         return get(MapDetails.class, UniqueKeys.forManyMapDetailsDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(Mastery.class)
-    public CloseableIterator<Mastery> getManyMastery(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Mastery> getManyMastery(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
         final Iterable<String> names = (Iterable<String>)query.get("names");
         Utilities.checkAtLeastOneNotNull(ids, "ids", names, "names");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
         return get(Mastery.class, UniqueKeys.forManyMasteryDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(MasteryList.class)
-    public CloseableIterator<MasteryList> getManyMasteryList(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<MasteryList> getManyMasteryList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
 
         return get(MasteryList.class, UniqueKeys.forManyMasteryListDtoQuery(query));
     }
@@ -614,20 +820,37 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
 
     @SuppressWarnings("unchecked")
     @GetMany(ProfileIconData.class)
-    public CloseableIterator<ProfileIconData> getManyProfileIconData(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<ProfileIconData> getManyProfileIconData(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
+
+        if(!query.containsKey("locale")) {
+            query = new HashMap<>(query);
+            query.put("locale", platform.getDefaultLocale());
+        }
 
         return get(ProfileIconData.class, UniqueKeys.forManyProfileIconDataDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(ProfileIconDetails.class)
-    public CloseableIterator<ProfileIconDetails> getManyProfileIconDetails(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<ProfileIconDetails> getManyProfileIconDetails(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
         Utilities.checkNotNull(platform, "platform", ids, "ids");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
 
         return get(ProfileIconDetails.class, UniqueKeys.forManyProfileIconDetailsDtoQuery(query));
     }
@@ -643,7 +866,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
 
     @SuppressWarnings("unchecked")
     @GetMany(ReforgedRune.class)
-    public CloseableIterator<ReforgedRune> getManyReforgedRune(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<ReforgedRune> getManyReforgedRune(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
@@ -651,37 +874,82 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final Iterable<String> keys = (Iterable<String>)query.get("keys");
         Utilities.checkAtLeastOneNotNull(ids, "ids", names, "names", keys, "keys");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
+
         return get(ReforgedRune.class, UniqueKeys.forManyReforgedRuneDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(ReforgedRuneTree.class)
-    public CloseableIterator<ReforgedRuneTree> getManyReforgedRuneTree(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<ReforgedRuneTree> getManyReforgedRuneTree(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
+
+        if(!query.containsKey("locale")) {
+            query = new HashMap<>(query);
+            query.put("locale", platform.getDefaultLocale());
+        }
 
         return get(ReforgedRuneTree.class, UniqueKeys.forManyReforgedRuneTreeDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(Rune.class)
-    public CloseableIterator<Rune> getManyRune(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<Rune> getManyRune(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
         final Iterable<String> names = (Iterable<String>)query.get("names");
         Utilities.checkAtLeastOneNotNull(ids, "ids", names, "names");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
         return get(Rune.class, UniqueKeys.forManyRuneDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(RuneList.class)
-    public CloseableIterator<RuneList> getManyRuneList(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<RuneList> getManyRuneList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
 
         return get(RuneList.class, UniqueKeys.forManyRuneListDtoQuery(query));
     }
@@ -720,22 +988,50 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
 
     @SuppressWarnings("unchecked")
     @GetMany(SummonerSpell.class)
-    public CloseableIterator<SummonerSpell> getManySummonerSpell(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<SummonerSpell> getManySummonerSpell(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Iterable<Number> ids = (Iterable<Number>)query.get("ids");
         final Iterable<String> names = (Iterable<String>)query.get("names");
         Utilities.checkAtLeastOneNotNull(ids, "ids", names, "names");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
         return get(SummonerSpell.class, UniqueKeys.forManySummonerSpellDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
     @GetMany(SummonerSpellList.class)
-    public CloseableIterator<SummonerSpellList> getManySummonerSpellList(final Map<String, Object> query, final PipelineContext context) {
+    public CloseableIterator<SummonerSpellList> getManySummonerSpellList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         final Iterable<String> iter = (Iterable<String>)query.get("versions");
         Utilities.checkNotNull(platform, "platform", iter, "versions");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
 
         return get(SummonerSpellList.class, UniqueKeys.forManySummonerSpellListDtoQuery(query));
     }
@@ -770,39 +1066,95 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @Get(MapData.class)
-    public MapData getMapData(final Map<String, Object> query, final PipelineContext context) {
+    public MapData getMapData(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
 
         return get(MapData.class, UniqueKeys.forMapDataDtoQuery(query));
     }
 
     @Get(MapDetails.class)
-    public MapDetails getMapDetails(final Map<String, Object> query, final PipelineContext context) {
+    public MapDetails getMapDetails(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
         final String name = (String)query.get("name");
         Utilities.checkAtLeastOneNotNull(id, "id", name, "name");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
 
         return get(MapDetails.class, UniqueKeys.forMapDetailsDtoQuery(query));
     }
 
     @Get(Mastery.class)
-    public Mastery getMastery(final Map<String, Object> query, final PipelineContext context) {
+    public Mastery getMastery(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
         final String name = (String)query.get("name");
         Utilities.checkAtLeastOneNotNull(id, "id", name, "name");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
         return get(Mastery.class, UniqueKeys.forMasteryDtoQuery(query));
     }
 
     @Get(MasteryList.class)
-    public MasteryList getMasteryList(final Map<String, Object> query, final PipelineContext context) {
+    public MasteryList getMasteryList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
 
         return get(MasteryList.class, UniqueKeys.forMasteryListDtoQuery(query));
     }
@@ -826,19 +1178,43 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @Get(ProfileIconData.class)
-    public ProfileIconData getProfileIconData(final Map<String, Object> query, final PipelineContext context) {
+    public ProfileIconData getProfileIconData(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
 
         return get(ProfileIconData.class, UniqueKeys.forProfileIconDataDtoQuery(query));
     }
 
     @Get(ProfileIconDetails.class)
-    public ProfileIconDetails getProfileIconDetails(final Map<String, Object> query, final PipelineContext context) {
+    public ProfileIconDetails getProfileIconDetails(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
         Utilities.checkAtLeastOneNotNull(id, "id");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
 
         return get(ProfileIconDetails.class, UniqueKeys.forProfileIconDetailsDtoQuery(query));
     }
@@ -852,7 +1228,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @Get(ReforgedRune.class)
-    public ReforgedRune getReforgedRune(final Map<String, Object> query, final PipelineContext context) {
+    public ReforgedRune getReforgedRune(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
@@ -860,32 +1236,88 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         final String key = (String)query.get("key");
         Utilities.checkAtLeastOneNotNull(id, "id", name, "name", key, "key");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
+
         return get(ReforgedRune.class, UniqueKeys.forReforgedRuneDtoQuery(query));
     }
 
     @Get(ReforgedRuneTree.class)
-    public ReforgedRuneTree getReforgedRuneTree(final Map<String, Object> query, final PipelineContext context) {
+    public ReforgedRuneTree getReforgedRuneTree(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+        }
 
         return get(ReforgedRuneTree.class, UniqueKeys.forReforgedRuneTreeDtoQuery(query));
     }
 
     @Get(Rune.class)
-    public Rune getRune(final Map<String, Object> query, final PipelineContext context) {
+    public Rune getRune(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
         final String name = (String)query.get("name");
         Utilities.checkAtLeastOneNotNull(id, "id", name, "name");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
         return get(Rune.class, UniqueKeys.forRuneDtoQuery(query));
     }
 
     @Get(RuneList.class)
-    public RuneList getRuneList(final Map<String, Object> query, final PipelineContext context) {
+    public RuneList getRuneList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
 
         return get(RuneList.class, UniqueKeys.forRuneListDtoQuery(query));
     }
@@ -920,20 +1352,52 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @Get(SummonerSpell.class)
-    public SummonerSpell getSummonerSpell(final Map<String, Object> query, final PipelineContext context) {
+    public SummonerSpell getSummonerSpell(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
         final Number id = (Number)query.get("id");
         final String name = (String)query.get("name");
         Utilities.checkAtLeastOneNotNull(id, "id", name, "name");
 
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
+
         return get(SummonerSpell.class, UniqueKeys.forSummonerSpellDtoQuery(query));
     }
 
     @Get(SummonerSpellList.class)
-    public SummonerSpellList getSummonerSpellList(final Map<String, Object> query, final PipelineContext context) {
+    public SummonerSpellList getSummonerSpellList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
+
+        if(!query.keySet().containsAll(Lists.newArrayList("version", "locale", "includedData"))) {
+            query = new HashMap<>(query);
+
+            if(!query.containsKey("version")) {
+                query.put("version", getCurrentVersion(platform, context));
+            }
+
+            if(!query.containsKey("locale")) {
+                query.put("locale", platform.getDefaultLocale());
+            }
+
+            if(!query.containsKey("includedData")) {
+                query.put("includedData", Collections.<String> emptySet());
+            }
+        }
 
         return get(SummonerSpellList.class, UniqueKeys.forSummonerSpellListDtoQuery(query));
     }
@@ -1064,7 +1528,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             final Iterator<T> valueIterator = values.iterator();
 
             while(keyIterator.hasNext() && valueIterator.hasNext()) {
-                store.put(transaction, IntegerBinding.intToEntry(keyIterator.next()), new ArrayByteIterable(toByteIterable(valueIterator.next())));
+                store.put(transaction, IntegerBinding.intToEntry(keyIterator.next()), toByteIterable(valueIterator.next()));
             }
         } finally {
             transaction.commit();
