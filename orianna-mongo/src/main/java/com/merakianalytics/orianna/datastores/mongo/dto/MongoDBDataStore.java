@@ -22,7 +22,7 @@ import java.util.stream.StreamSupport;
 
 import org.bson.BsonNumber;
 import org.bson.BsonString;
-import org.bson.codecs.pojo.AddUpdatedTimestamp;
+import org.bson.codecs.pojo.AddOriannaIndexFields;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -182,25 +182,25 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(TournamentMatches.class, new String[] {"platform", "tournamentCode"})
             .put(CurrentGameInfo.class, new String[] {"platformId", "summonerId"})
             .put(FeaturedGames.class, new String[] {"platform"})
-            .put(Champion.class, new String[] {"platform", "id", "version", "locale", "includedData"})
-            .put(ChampionList.class, new String[] {"platform", "version", "locale", "includedData"})
-            .put(Item.class, new String[] {"platform", "id", "version", "locale", "includedData"})
-            .put(ItemList.class, new String[] {"platform", "version", "locale", "includedData"})
+            .put(Champion.class, new String[] {"platform", "id", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(ChampionList.class, new String[] {"platform", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(Item.class, new String[] {"platform", "id", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(ItemList.class, new String[] {"platform", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(Languages.class, new String[] {"platform"})
             .put(LanguageStrings.class, new String[] {"platform", "version", "locale"})
             .put(MapData.class, new String[] {"platform", "version", "locale"})
             .put(MapDetails.class, new String[] {"platform", "mapId", "version", "locale"})
-            .put(Mastery.class, new String[] {"platform", "id", "version", "locale", "includedData"})
-            .put(MasteryList.class, new String[] {"platform", "version", "locale", "includedData"})
+            .put(Mastery.class, new String[] {"platform", "id", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(MasteryList.class, new String[] {"platform", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(ProfileIconData.class, new String[] {"platform", "version", "locale"})
             .put(ProfileIconDetails.class, new String[] {"platform", "id", "version", "locale"})
             .put(Realm.class, new String[] {"platform"})
             .put(ReforgedRune.class, new String[] {"platform", "id", "version", "locale"})
             .put(ReforgedRuneTree.class, new String[] {"platform", "version", "locale"})
-            .put(Rune.class, new String[] {"platform", "id", "version", "locale", "includedData"})
-            .put(RuneList.class, new String[] {"platform", "version", "locale", "includedData"})
-            .put(SummonerSpell.class, new String[] {"platform", "id", "version", "locale", "includedData"})
-            .put(SummonerSpellList.class, new String[] {"platform", "version", "locale", "includedData"})
+            .put(Rune.class, new String[] {"platform", "id", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(RuneList.class, new String[] {"platform", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(SummonerSpell.class, new String[] {"platform", "id", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(SummonerSpellList.class, new String[] {"platform", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(Versions.class, new String[] {"platform"})
             .put(ShardStatus.class, new String[] {"platform"})
             .put(Summoner.class, new String[] {"platform", "id"})
@@ -219,7 +219,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             final ExpirationPeriod period = expirationPeriods.get(clazz.getCanonicalName());
             if(period != null && period.getPeriod() > 0) {
                 final IndexModel expiration =
-                    new IndexModel(ascending(AddUpdatedTimestamp.FIELD_NAME), new IndexOptions().expireAfter(period.getPeriod(), period.getUnit()));
+                    new IndexModel(ascending(AddOriannaIndexFields.UPDATED_FIELD_NAME), new IndexOptions().expireAfter(period.getPeriod(), period.getUnit()));
                 indexes = Lists.newArrayList(compositeKey, expiration);
             } else {
                 indexes = Lists.newArrayList(compositeKey);

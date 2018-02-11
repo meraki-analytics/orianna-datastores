@@ -25,7 +25,7 @@ import org.bson.BsonString;
 import org.bson.BsonValue;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.codecs.pojo.AddUpdatedTimestamp;
+import org.bson.codecs.pojo.AddOriannaIndexFields;
 import org.bson.codecs.pojo.PojoCodecProvider;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
@@ -858,7 +858,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         final MongoClientSettings.Builder builder = MongoClientSettings.builder();
 
         final CodecRegistry registry = CodecRegistries.fromRegistries(MongoClients.getDefaultCodecRegistry(),
-            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).conventions(Lists.newArrayList(new AddUpdatedTimestamp())).build()));
+            CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).conventions(Lists.newArrayList(new AddOriannaIndexFields())).build()));
         builder.codecRegistry(registry);
 
         if(config.getCompressor() != null) {
