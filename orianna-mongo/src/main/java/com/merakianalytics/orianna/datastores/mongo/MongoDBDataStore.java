@@ -533,7 +533,9 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         }
 
         private Compressor compressor;
+
         private ConnectionPoolConfiguration connectionPool;
+
         private String database = "orianna";
         private HeartbeatConfiguration heartbeat;
         private String host = "localhost";
@@ -543,8 +545,15 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         private ServerConfiguration server;
         private SocketConfiguration socket, heartbeatSocket;
         private SSLConfiguration ssl;
-        private String userName, password;
+        private String userName, password, authenticationDatabase;
         private WriteConcern writeConcern;
+
+        /**
+         * @return the authenticationDatabase
+         */
+        public String getAuthenticationDatabase() {
+            return authenticationDatabase;
+        }
 
         /**
          * @return the compressor
@@ -649,6 +658,14 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
          */
         public WriteConcern getWriteConcern() {
             return writeConcern;
+        }
+
+        /**
+         * @param authenticationDatabase
+         *        the authenticationDatabase to set
+         */
+        public void setAuthenticationDatabase(final String authenticationDatabase) {
+            this.authenticationDatabase = authenticationDatabase;
         }
 
         /**
@@ -912,7 +929,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         }
 
         if(config.getPassword() != null) {
-            builder.credential(MongoCredential.createCredential(config.getUserName(), config.getDatabase(), config.getPassword().toCharArray()));
+            builder.credential(MongoCredential.createCredential(config.getUserName(), config.getAuthenticationDatabase(), config.getPassword().toCharArray()));
         }
 
         if(config.getHeartbeatSocket() != null) {
