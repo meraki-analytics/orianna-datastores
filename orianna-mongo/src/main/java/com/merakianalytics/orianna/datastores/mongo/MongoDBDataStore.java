@@ -929,7 +929,8 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         }
 
         if(config.getPassword() != null) {
-            builder.credential(MongoCredential.createCredential(config.getUserName(), config.getAuthenticationDatabase(), config.getPassword().toCharArray()));
+            builder.credential(MongoCredential.createCredential(config.getUserName(),
+                config.getAuthenticationDatabase() != null ? config.getAuthenticationDatabase() : config.getDatabase(), config.getPassword().toCharArray()));
         }
 
         if(config.getHeartbeatSocket() != null) {
