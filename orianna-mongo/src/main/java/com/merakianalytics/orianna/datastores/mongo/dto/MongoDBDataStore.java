@@ -176,7 +176,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ChampionMasteryScore.class, new String[] {"platform", "summonerId"})
             .put(LeagueList.class, new String[] {"platform", "leagueId"})
             .put(SummonerPositions.class, new String[] {"platform", "summonerId"})
-            .put(Match.class, new String[] {"platform", "gameId"})
+            .put(Match.class, new String[] {"platformId", "gameId"})
             // TODO: Matchlist
             .put(MatchTimeline.class, new String[] {"platform", "matchId"})
             .put(TournamentMatches.class, new String[] {"platform", "tournamentCode"})

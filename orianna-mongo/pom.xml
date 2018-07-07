@@ -16,7 +16,7 @@
 	<url>https://github.com/meraki-analytics/orianna-datastores</url>
 
 	<properties>
-		<mongo-driver.version>3.6.2</mongo-driver.version>
+		<mongo-driver.version>3.6.4</mongo-driver.version>
 		<guava.version>24.0-jre</guava.version>
 	</properties>
 
