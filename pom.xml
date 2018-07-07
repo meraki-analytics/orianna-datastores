@@ -5,7 +5,7 @@
 
 	<groupId>com.merakianalytics.orianna.datastores</groupId>
 	<artifactId>datastores-parent</artifactId>
-	<version>1.0.3-SNAPSHOT</version>
+	<version>1.0.3</version>
 	<packaging>pom</packaging>
 
 	<name>orianna-datastores</name>
