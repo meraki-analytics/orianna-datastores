@@ -39,6 +39,7 @@ import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configurati
 import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration.ServerConfiguration;
 import com.merakianalytics.orianna.datastores.mongo.MongoDBDataStore.Configuration.SocketConfiguration;
 import com.merakianalytics.orianna.types.common.OriannaException;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCompressor;
 import com.mongodb.MongoCredential;
 import com.mongodb.ReadConcern;
@@ -47,7 +48,6 @@ import com.mongodb.WriteConcern;
 import com.mongodb.async.client.AggregateIterable;
 import com.mongodb.async.client.FindIterable;
 import com.mongodb.async.client.MongoClient;
-import com.mongodb.async.client.MongoClientSettings;
 import com.mongodb.async.client.MongoClients;
 import com.mongodb.async.client.MongoCollection;
 import com.mongodb.async.client.MongoDatabase;
@@ -55,7 +55,7 @@ import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Field;
 import com.mongodb.client.model.ReplaceOneModel;
-import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.ReplaceOptions;
 import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.connection.ClusterConnectionMode;
@@ -543,7 +543,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         private ReadConcern readConcern;
         private Boolean retryWrites;
         private ServerConfiguration server;
-        private SocketConfiguration socket, heartbeatSocket;
+        private SocketConfiguration socket;
         private SSLConfiguration ssl;
         private String userName, password, authenticationDatabase;
         private WriteConcern writeConcern;
@@ -581,13 +581,6 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
          */
         public HeartbeatConfiguration getHeartbeat() {
             return heartbeat;
-        }
-
-        /**
-         * @return the heartbeatSocket
-         */
-        public SocketConfiguration getHeartbeatSocket() {
-            return heartbeatSocket;
         }
 
         /**
@@ -698,14 +691,6 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
          */
         public void setHeartbeat(final HeartbeatConfiguration heartbeat) {
             this.heartbeat = heartbeat;
-        }
-
-        /**
-         * @param heartbeatSocket
-         *        the heartbeatSocket to set
-         */
-        public void setHeartbeatSocket(final SocketConfiguration heartbeatSocket) {
-            this.heartbeatSocket = heartbeatSocket;
         }
 
         /**
@@ -859,7 +844,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
 
     private static final BulkWriteOptions BULK_WRITE_OPTIONS = new BulkWriteOptions().ordered(false);
     private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBDataStore.class);
-    private static final UpdateOptions UPDATE_OPTIONS = new UpdateOptions().upsert(true);
+    private static final ReplaceOptions REPLACE_OPTIONS = new ReplaceOptions().upsert(true);
 
     protected static Number fromBson(final BsonNumber number) {
         if(number instanceof BsonInt32) {
@@ -891,65 +876,47 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
             }
         }
 
-        builder.clusterSettings(ClusterSettings.builder().hosts(Lists.newArrayList(new ServerAddress(config.getHost(), config.getPort())))
-            .mode(ClusterConnectionMode.SINGLE).build());
+        builder.applyToClusterSettings((final ClusterSettings.Builder cluster) -> {
+            cluster.hosts(Lists.newArrayList(new ServerAddress(config.getHost(), config.getPort()))).mode(ClusterConnectionMode.SINGLE);
+        });
 
         if(config.getConnectionPool() != null) {
-            final ConnectionPoolConfiguration conf = config.getConnectionPool();
-            final ConnectionPoolSettings.Builder connectionPool = ConnectionPoolSettings.builder();
-            if(conf.getMaintenanceFrequency() != null) {
-                connectionPool.maintenanceFrequency(conf.getMaintenanceFrequency(),
-                    conf.getMaintenanceFrequencyUnit() == null ? TimeUnit.MILLISECONDS : conf.getMaintenanceFrequencyUnit());
-            }
-            if(conf.getMaintenanceInitialDelay() != null) {
-                connectionPool.maintenanceInitialDelay(conf.getMaintenanceInitialDelay(),
-                    conf.getMaintenanceInitialDelayUnit() == null ? TimeUnit.MILLISECONDS : conf.getMaintenanceInitialDelayUnit());
-            }
-            if(conf.getMaxConnectionIdleTime() != null) {
-                connectionPool.maxConnectionIdleTime(conf.getMaxConnectionIdleTime(),
-                    conf.getMaxConnectionIdleTimeUnit() == null ? TimeUnit.MILLISECONDS : conf.getMaxConnectionIdleTimeUnit());
-            }
-            if(conf.getMaxConnectionLifeTime() != null) {
-                connectionPool.maxConnectionLifeTime(conf.getMaxConnectionLifeTime(),
-                    conf.getMaxConnectionLifeTimeUnit() == null ? TimeUnit.MILLISECONDS : conf.getMaxConnectionLifeTimeUnit());
-            }
-            if(conf.getMaxSize() != null) {
-                connectionPool.maxSize(conf.getMaxSize());
-            }
-            if(conf.getMaxWaitQueueSize() != null) {
-                connectionPool.maxWaitQueueSize(conf.getMaxWaitQueueSize());
-            }
-            if(conf.getMaxWaitTime() != null) {
-                connectionPool.maxWaitTime(conf.getMaxWaitTime(), conf.getMaxWaitTimeUnit() == null ? TimeUnit.MILLISECONDS : conf.getMaxWaitTimeUnit());
-            }
-            if(conf.getMinSize() != null) {
-                connectionPool.minSize(conf.getMinSize());
-            }
-            builder.connectionPoolSettings(connectionPool.build());
+            builder.applyToConnectionPoolSettings((final ConnectionPoolSettings.Builder connectionPool) -> {
+                final ConnectionPoolConfiguration conf = config.getConnectionPool();
+                if(conf.getMaintenanceFrequency() != null) {
+                    connectionPool.maintenanceFrequency(conf.getMaintenanceFrequency(),
+                        conf.getMaintenanceFrequencyUnit() == null ? TimeUnit.MILLISECONDS : conf.getMaintenanceFrequencyUnit());
+                }
+                if(conf.getMaintenanceInitialDelay() != null) {
+                    connectionPool.maintenanceInitialDelay(conf.getMaintenanceInitialDelay(),
+                        conf.getMaintenanceInitialDelayUnit() == null ? TimeUnit.MILLISECONDS : conf.getMaintenanceInitialDelayUnit());
+                }
+                if(conf.getMaxConnectionIdleTime() != null) {
+                    connectionPool.maxConnectionIdleTime(conf.getMaxConnectionIdleTime(),
+                        conf.getMaxConnectionIdleTimeUnit() == null ? TimeUnit.MILLISECONDS : conf.getMaxConnectionIdleTimeUnit());
+                }
+                if(conf.getMaxConnectionLifeTime() != null) {
+                    connectionPool.maxConnectionLifeTime(conf.getMaxConnectionLifeTime(),
+                        conf.getMaxConnectionLifeTimeUnit() == null ? TimeUnit.MILLISECONDS : conf.getMaxConnectionLifeTimeUnit());
+                }
+                if(conf.getMaxSize() != null) {
+                    connectionPool.maxSize(conf.getMaxSize());
+                }
+                if(conf.getMaxWaitQueueSize() != null) {
+                    connectionPool.maxWaitQueueSize(conf.getMaxWaitQueueSize());
+                }
+                if(conf.getMaxWaitTime() != null) {
+                    connectionPool.maxWaitTime(conf.getMaxWaitTime(), conf.getMaxWaitTimeUnit() == null ? TimeUnit.MILLISECONDS : conf.getMaxWaitTimeUnit());
+                }
+                if(conf.getMinSize() != null) {
+                    connectionPool.minSize(conf.getMinSize());
+                }
+            });
         }
 
         if(config.getPassword() != null) {
             builder.credential(MongoCredential.createCredential(config.getUserName(),
                 config.getAuthenticationDatabase() != null ? config.getAuthenticationDatabase() : config.getDatabase(), config.getPassword().toCharArray()));
-        }
-
-        if(config.getHeartbeatSocket() != null) {
-            final SocketConfiguration conf = config.getHeartbeatSocket();
-            final SocketSettings.Builder heartbeatSocket = SocketSettings.builder();
-            if(conf.getConnectTimeout() != null) {
-                heartbeatSocket.connectTimeout(conf.getConnectTimeout(),
-                    conf.getConnectTimeoutUnit() == null ? TimeUnit.MILLISECONDS : conf.getConnectTimeoutUnit());
-            }
-            if(conf.getReadTimeout() != null) {
-                heartbeatSocket.readTimeout(conf.getReadTimeout(), conf.getReadTimeoutUnit() == null ? TimeUnit.MILLISECONDS : conf.getReadTimeoutUnit());
-            }
-            if(conf.getReceiveBufferSize() != null) {
-                heartbeatSocket.receiveBufferSize(conf.getReceiveBufferSize());
-            }
-            if(conf.getSendBufferSize() != null) {
-                heartbeatSocket.sendBufferSize(conf.getSendBufferSize());
-            }
-            builder.heartbeatSocketSettings(heartbeatSocket.build());
         }
 
         if(config.getReadConcern() != null) {
@@ -961,47 +928,48 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         }
 
         if(config.getServer() != null) {
-            final ServerConfiguration conf = config.getServer();
-            final ServerSettings.Builder server = ServerSettings.builder();
-            if(conf.getHeartbeatFrequency() != null) {
-                server.heartbeatFrequency(conf.getHeartbeatFrequency(),
-                    conf.getHeartbeatFrequencyUnit() == null ? TimeUnit.MILLISECONDS : conf.getHeartbeatFrequencyUnit());
-            }
-            if(conf.getMinHeartbeatFrequency() != null) {
-                server.minHeartbeatFrequency(conf.getMinHeartbeatFrequency(),
-                    conf.getMinHeartbeatFrequencyUnit() == null ? TimeUnit.MILLISECONDS : conf.getMinHeartbeatFrequencyUnit());
-            }
-            builder.serverSettings(server.build());
+            builder.applyToServerSettings((final ServerSettings.Builder server) -> {
+                final ServerConfiguration conf = config.getServer();
+                if(conf.getHeartbeatFrequency() != null) {
+                    server.heartbeatFrequency(conf.getHeartbeatFrequency(),
+                        conf.getHeartbeatFrequencyUnit() == null ? TimeUnit.MILLISECONDS : conf.getHeartbeatFrequencyUnit());
+                }
+                if(conf.getMinHeartbeatFrequency() != null) {
+                    server.minHeartbeatFrequency(conf.getMinHeartbeatFrequency(),
+                        conf.getMinHeartbeatFrequencyUnit() == null ? TimeUnit.MILLISECONDS : conf.getMinHeartbeatFrequencyUnit());
+                }
+            });
         }
 
         if(config.getSocket() != null) {
-            final SocketConfiguration conf = config.getSocket();
-            final SocketSettings.Builder socket = SocketSettings.builder();
-            if(conf.getConnectTimeout() != null) {
-                socket.connectTimeout(conf.getConnectTimeout(), conf.getConnectTimeoutUnit() == null ? TimeUnit.MILLISECONDS : conf.getConnectTimeoutUnit());
-            }
-            if(conf.getReadTimeout() != null) {
-                socket.readTimeout(conf.getReadTimeout(), conf.getReadTimeoutUnit() == null ? TimeUnit.MILLISECONDS : conf.getReadTimeoutUnit());
-            }
-            if(conf.getReceiveBufferSize() != null) {
-                socket.receiveBufferSize(conf.getReceiveBufferSize());
-            }
-            if(conf.getSendBufferSize() != null) {
-                socket.sendBufferSize(conf.getSendBufferSize());
-            }
-            builder.socketSettings(socket.build());
+            builder.applyToSocketSettings((final SocketSettings.Builder socket) -> {
+                final SocketConfiguration conf = config.getSocket();
+                if(conf.getConnectTimeout() != null) {
+                    socket.connectTimeout(conf.getConnectTimeout(),
+                        conf.getConnectTimeoutUnit() == null ? TimeUnit.MILLISECONDS : conf.getConnectTimeoutUnit());
+                }
+                if(conf.getReadTimeout() != null) {
+                    socket.readTimeout(conf.getReadTimeout(), conf.getReadTimeoutUnit() == null ? TimeUnit.MILLISECONDS : conf.getReadTimeoutUnit());
+                }
+                if(conf.getReceiveBufferSize() != null) {
+                    socket.receiveBufferSize(conf.getReceiveBufferSize());
+                }
+                if(conf.getSendBufferSize() != null) {
+                    socket.sendBufferSize(conf.getSendBufferSize());
+                }
+            });
         }
 
         if(config.getSsl() != null) {
-            final SSLConfiguration conf = config.getSsl();
-            final SslSettings.Builder ssl = SslSettings.builder();
-            if(conf.getEnabled() != null) {
-                ssl.enabled(conf.getEnabled());
-            }
-            if(conf.getInvalidHostNameallowed() != null) {
-                ssl.invalidHostNameAllowed(conf.getInvalidHostNameallowed());
-            }
-            builder.sslSettings(ssl.build());
+            builder.applyToSslSettings((final SslSettings.Builder ssl) -> {
+                final SSLConfiguration conf = config.getSsl();
+                if(conf.getEnabled() != null) {
+                    ssl.enabled(conf.getEnabled());
+                }
+                if(conf.getInvalidHostNameallowed() != null) {
+                    ssl.invalidHostNameAllowed(conf.getInvalidHostNameallowed());
+                }
+            });
         }
 
         if(config.getWriteConcern() != null) {
@@ -1042,7 +1010,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
     protected <T> FindResultIterator<T> find(final Class<T> clazz, final Bson filter) {
         final MongoCollection<T> collection = getCollection(clazz);
         final CompletableFuture<FindResultIterator<T>> future = new CompletableFuture<>();
-        collection.count((final Long count, final Throwable exception) -> {
+        collection.countDocuments((final Long count, final Throwable exception) -> {
             if(exception != null) {
                 future.completeExceptionally(exception);
             } else if(0L == count) {
@@ -1067,7 +1035,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
         }
 
         final CompletableFuture<FindResultIterator<T>> future = new CompletableFuture<>();
-        collection.count(find.getFilter(), (final Long count, final Throwable exception) -> {
+        collection.countDocuments(find.getFilter(), (final Long count, final Throwable exception) -> {
             if(exception != null) {
                 future.completeExceptionally(exception);
             } else if(find.getOrder().size() > count) {
@@ -1145,7 +1113,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
 
     protected <T> void upsert(final Class<T> clazz, final Iterable<T> objects, final Function<T, Bson> filter) {
         final List<WriteModel<T>> writes = StreamSupport.stream(objects.spliterator(), false).map((final T object) -> {
-            return new ReplaceOneModel<>(filter.apply(object), object, UPDATE_OPTIONS);
+            return new ReplaceOneModel<>(filter.apply(object), object, REPLACE_OPTIONS);
         }).collect(Collectors.toList());
 
         final MongoCollection<T> collection = getCollection(clazz);
@@ -1159,7 +1127,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
 
     protected <T> void upsert(final Class<T> clazz, final T object, final Bson filter) {
         final MongoCollection<T> collection = getCollection(clazz);
-        collection.replaceOne(filter, object, UPDATE_OPTIONS, (final UpdateResult result, final Throwable exception) -> {
+        collection.replaceOne(filter, object, REPLACE_OPTIONS, (final UpdateResult result, final Throwable exception) -> {
             if(exception != null) {
                 LOGGER.error("Error upserting to MongoDB!", exception);
                 throw new OriannaException("Error upserting to MongoDB!", exception);

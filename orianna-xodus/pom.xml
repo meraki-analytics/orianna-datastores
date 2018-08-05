@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>com.merakianalytics.orianna.datastores</groupId>
 		<artifactId>datastores-parent</artifactId>
-		<version>1.0.4-SNAPSHOT</version>
+		<version>1.1.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>xodus</artifactId>
@@ -17,21 +18,28 @@
 
 	<properties>
 		<xodus.version>1.2.3</xodus.version>
-		<guava.version>20.0</guava.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.merakianalytics.datapipelines</groupId>
 			<artifactId>datapipelines</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.merakianalytics.orianna</groupId>
 			<artifactId>orianna</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jetbrains.xodus</groupId>
@@ -42,11 +50,6 @@
 			<groupId>org.jetbrains.xodus</groupId>
 			<artifactId>xodus-entity-store</artifactId>
 			<version>${xodus.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>${guava.version}</version>
 		</dependency>
 	</dependencies>
 </project>
