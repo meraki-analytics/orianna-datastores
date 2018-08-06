@@ -8,6 +8,7 @@ import static com.mongodb.client.model.Indexes.compoundIndex;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -67,6 +68,8 @@ import com.merakianalytics.orianna.types.dto.staticdata.MapData;
 import com.merakianalytics.orianna.types.dto.staticdata.MapDetails;
 import com.merakianalytics.orianna.types.dto.staticdata.Mastery;
 import com.merakianalytics.orianna.types.dto.staticdata.MasteryList;
+import com.merakianalytics.orianna.types.dto.staticdata.Patch;
+import com.merakianalytics.orianna.types.dto.staticdata.Patches;
 import com.merakianalytics.orianna.types.dto.staticdata.ProfileIconData;
 import com.merakianalytics.orianna.types.dto.staticdata.ProfileIconDetails;
 import com.merakianalytics.orianna.types.dto.staticdata.Realm;
@@ -114,6 +117,8 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(MapDetails.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(Mastery.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(MasteryList.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Patch.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Patches.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(ProfileIconData.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(ProfileIconDetails.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(ReforgedRune.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
@@ -149,6 +154,20 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     private static final Set<Tier> LEAGUE_LIST_ENDPOINTS = ImmutableSet.of(Tier.MASTER, Tier.CHALLENGER);
     private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBDataStore.class);
+
+    private static final Comparator<Patch> PATCH_COMPARATOR = (final Patch first, final Patch second) -> {
+        final String[] firstParts = first.getName().replaceAll("[^\\d.]", "").split("\\.");
+        final String[] secondParts = second.getName().replaceAll("[^\\d.]", "").split("\\.");
+        for(int i = 0; i < Math.min(firstParts.length, secondParts.length); i++) {
+            final int firstPart = Integer.parseInt(firstParts[i]);
+            final int secondPart = Integer.parseInt(secondParts[i]);
+            final int compare = Integer.compare(firstPart, secondPart);
+            if(compare != 0) {
+                return compare;
+            }
+        }
+        return Integer.compare(first.getName().length(), second.getName().length());
+    };
 
     private static String getCurrentVersion(final Platform platform, final PipelineContext context) {
         final Realm realm = context.getPipeline().get(Realm.class, ImmutableMap.<String, Object> of("platform", platform));
@@ -192,6 +211,8 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(MapDetails.class, new String[] {"platform", "mapId", "version", "locale"})
             .put(Mastery.class, new String[] {"platform", "id", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(MasteryList.class, new String[] {"platform", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(Patch.class, new String[] {"platform", "name"})
+            .put(Patches.class, new String[] {"platform"})
             .put(ProfileIconData.class, new String[] {"platform", "version", "locale"})
             .put(ProfileIconDetails.class, new String[] {"platform", "id", "version", "locale"})
             .put(Realm.class, new String[] {"platform"})
@@ -983,6 +1004,50 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     }
 
     @SuppressWarnings("unchecked")
+    @GetMany(Patch.class)
+    public CloseableIterator<Patch> getManyPatch(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<String> names = (Iterable<String>)query.get("names");
+        Utilities.checkNotNull(platform, "platform", names, "names");
+
+        final List<BsonString> order = StreamSupport.stream(names.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+        final Bson filter = and(eq("platform", platform.getTag()), in("name", order));
+        final FindQuery find = FindQuery.builder().filter(filter).order(order).orderingField("name").build();
+
+        return find(Patch.class, find);
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(Patches.class)
+    public CloseableIterator<Patches> getManyPatches(final Map<String, Object> query, final PipelineContext context) {
+        final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
+        Utilities.checkNotNull(iter, "platforms");
+
+        final List<BsonString> platforms = StreamSupport.stream(iter.spliterator(), false)
+            .map((final Platform platform) -> new BsonString(platform.getTag().toLowerCase())).collect(Collectors.toList());
+        final Bson filter = in("platform", platforms);
+        final FindQuery find = FindQuery.builder().filter(filter).order(platforms).orderingField("platform").build();
+
+        final FindResultIterator<com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches> results =
+            find(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches.class, find);
+
+        if(results == null) {
+            return null;
+        }
+
+        return CloseableIterators.transform(results, (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches result) -> {
+            try(FindResultIterator<Patch> patches = find(Patch.class, filter)) {
+                final Patches data = result.convert((int)patches.getCount());
+                while(patches.hasNext()) {
+                    data.getPatches().add(patches.next());
+                }
+                data.getPatches().sort(PATCH_COMPARATOR);
+                return data;
+            }
+        });
+    }
+
+    @SuppressWarnings("unchecked")
     @GetMany(ProfileIconData.class)
     public CloseableIterator<ProfileIconData> getManyProfileIconData(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -1481,6 +1546,41 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         final Bson filter = and(eq("platform", platform.getTag()), eq("matchId", matchId));
 
         return findFirst(MatchTimeline.class, filter);
+    }
+
+    @Get(Patch.class)
+    public Patch getPatch(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final String name = (String)query.get("name");
+        Utilities.checkNotNull(platform, "platform", name, "name");
+
+        final Bson filter = and(eq("platform", platform.getTag()), eq("name", name));
+
+        return findFirst(Patch.class, filter);
+    }
+
+    @Get(Patches.class)
+    public Patches getPatches(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+
+        final Bson filter = eq("platform", platform.getTag());
+
+        final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches result =
+            findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches.class, filter);
+
+        if(result == null) {
+            return null;
+        }
+
+        try(FindResultIterator<Patch> patches = find(Patch.class, filter)) {
+            final Patches data = result.convert((int)patches.getCount());
+            while(patches.hasNext()) {
+                data.getPatches().add(patches.next());
+            }
+            data.getPatches().sort(PATCH_COMPARATOR);
+            return data;
+        }
     }
 
     @Get(ProfileIconData.class)
@@ -2059,6 +2159,25 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         });
     }
 
+    @PutMany(Patch.class)
+    public void putManyPatch(final Iterable<Patch> p, final PipelineContext context) {
+        upsert(Patch.class, p, (final Patch patch) -> {
+            return and(eq("platform", patch.getPlatform()), eq("name", patch.getName()));
+        });
+    }
+
+    @PutMany(Patches.class)
+    public void putManyPatches(final Iterable<Patches> d, final PipelineContext context) {
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches.class,
+            Iterables.transform(d, com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches::convert),
+            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches data) -> {
+                return eq("platform", data.getPlatform());
+            });
+        putManyPatch(
+            Iterables.concat(StreamSupport.stream(d.spliterator(), false).map((final Patches data) -> data.getPatches()).collect(Collectors.toList())),
+            context);
+    }
+
     @PutMany(ProfileIconData.class)
     public void putManyProfileIconData(final Iterable<ProfileIconData> d, final PipelineContext context) {
         upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData.class,
@@ -2236,6 +2355,18 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @Put(MatchTimeline.class)
     public void putMatchTimeline(final MatchTimeline timeline, final PipelineContext context) {
         upsert(MatchTimeline.class, timeline, and(eq("platform", timeline.getPlatform()), eq("matchId", timeline.getMatchId())));
+    }
+
+    @Put(Patch.class)
+    public void putPatch(final Patch patch, final PipelineContext context) {
+        upsert(Patch.class, patch, and(eq("platform", patch.getPlatform()), eq("name", patch.getName())));
+    }
+
+    @Put(Patches.class)
+    public void putPatches(final Patches data, final PipelineContext context) {
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches.class,
+            com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches.convert(data), eq("platform", data.getPlatform()));
+        putManyPatch(data.getPatches(), context);
     }
 
     @Put(ProfileIconData.class)

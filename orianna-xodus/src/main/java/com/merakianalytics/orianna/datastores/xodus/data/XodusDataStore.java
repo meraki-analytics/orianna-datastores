@@ -55,6 +55,8 @@ import com.merakianalytics.orianna.types.data.staticdata.Map;
 import com.merakianalytics.orianna.types.data.staticdata.Maps;
 import com.merakianalytics.orianna.types.data.staticdata.Masteries;
 import com.merakianalytics.orianna.types.data.staticdata.Mastery;
+import com.merakianalytics.orianna.types.data.staticdata.Patch;
+import com.merakianalytics.orianna.types.data.staticdata.Patches;
 import com.merakianalytics.orianna.types.data.staticdata.ProfileIcon;
 import com.merakianalytics.orianna.types.data.staticdata.ProfileIcons;
 import com.merakianalytics.orianna.types.data.staticdata.Realm;
@@ -107,6 +109,8 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             .put(Map.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(Mastery.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(Masteries.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Patch.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
+            .put(Patches.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(ProfileIcons.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(ProfileIcon.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             .put(ReforgedRune.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
@@ -823,6 +827,25 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @SuppressWarnings("unchecked")
+    @GetMany(Patch.class)
+    public CloseableIterator<Patch> getManyPatch(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<String> names = (Iterable<String>)query.get("names");
+        Utilities.checkNotNull(platform, "platform", names, "names");
+
+        return get(Patch.class, UniqueKeys.forManyPatchDataQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(Patches.class)
+    public CloseableIterator<Patches> getManyPatches(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
+        Utilities.checkNotNull(iter, "platforms");
+
+        return get(Patches.class, UniqueKeys.forManyPatchesDataQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
     @GetMany(ProfileIcon.class)
     public CloseableIterator<ProfileIcon> getManyProfileIcon(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -1170,6 +1193,23 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         Utilities.checkNotNull(platform, "platform", matchId, "matchId");
 
         return get(Match.class, UniqueKeys.forMatchDataQuery(query));
+    }
+
+    @Get(Patch.class)
+    public Patch getPatch(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final String name = (String)query.get("name");
+        Utilities.checkNotNull(platform, "platform", name, "name");
+
+        return get(Patch.class, UniqueKeys.forPatchDataQuery(query));
+    }
+
+    @Get(Patches.class)
+    public Patches getPatches(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+
+        return get(Patches.class, UniqueKeys.forPatchesDataQuery(query));
     }
 
     @Get(ProfileIcon.class)
@@ -1902,6 +1942,36 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Match.class, keys, matches);
     }
 
+    @PutMany(Patch.class)
+    public void putManyPatch(final Iterable<Patch> patches, final PipelineContext context) {
+        final ArrayList<Integer> keys = new ArrayList<>();
+        final ArrayList<Patch> values = new ArrayList<>();
+        for(final Patch patch : patches) {
+            keys.add(UniqueKeys.forPatchData(patch));
+            values.add(patch);
+        }
+        keys.trimToSize();
+        values.trimToSize();
+
+        put(Patch.class, keys, values);
+    }
+
+    @PutMany(Patches.class)
+    public void putManyPatches(final Iterable<Patches> patches, final PipelineContext context) {
+        final ArrayList<Integer> keys = new ArrayList<>();
+        for(final Patches patch : patches) {
+            keys.add(UniqueKeys.forPatchesData(patch));
+        }
+        keys.trimToSize();
+
+        put(Patches.class, keys, patches);
+        final List<List<Patch>> toStore = new ArrayList<>(keys.size());
+        for(final Patches patch : patches) {
+            toStore.add(new ArrayList<>(patch));
+        }
+        putManyPatch(Iterables.concat(toStore), context);
+    }
+
     @PutMany(ProfileIcon.class)
     public void putManyProfileIcon(final Iterable<ProfileIcon> icons, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
@@ -2118,6 +2188,17 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     @Put(Match.class)
     public void putMatch(final Match match, final PipelineContext context) {
         put(Match.class, UniqueKeys.forMatchData(match), match);
+    }
+
+    @Put(Patch.class)
+    public void putPatch(final Patch patch, final PipelineContext context) {
+        put(Patch.class, UniqueKeys.forPatchData(patch), patch);
+    }
+
+    @Put(Patches.class)
+    public void putPatches(final Patches patches, final PipelineContext context) {
+        put(Patches.class, UniqueKeys.forPatchesData(patches), patches);
+        putManyPatch(patches, context);
     }
 
     @Put(ProfileIcon.class)
