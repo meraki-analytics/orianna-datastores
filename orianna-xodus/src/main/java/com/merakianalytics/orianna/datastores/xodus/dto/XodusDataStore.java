@@ -34,6 +34,7 @@ import com.merakianalytics.orianna.types.common.Platform;
 import com.merakianalytics.orianna.types.common.Queue;
 import com.merakianalytics.orianna.types.common.Tier;
 import com.merakianalytics.orianna.types.dto.DataObject;
+import com.merakianalytics.orianna.types.dto.champion.ChampionInfo;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMastery;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteryScore;
@@ -87,8 +88,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         private static final Long DEFAULT_ETERNAL_PERIOD = -1L;
         private static final TimeUnit DEFAULT_ETERNAL_UNIT = TimeUnit.DAYS;
         private static final Map<String, ExpirationPeriod> DEFAULT_EXPIRATION_PERIODS = ImmutableMap.<String, ExpirationPeriod> builder()
-            .put(com.merakianalytics.orianna.types.dto.champion.Champion.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
-            .put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
+            .put(ChampionInfo.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(ChampionMastery.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteries.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
@@ -281,6 +281,14 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         return get(Champion.class, UniqueKeys.forChampionDtoQuery(query));
     }
 
+    @Get(ChampionInfo.class)
+    public ChampionInfo getChampionInfo(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+
+        return get(ChampionInfo.class, UniqueKeys.forChampionInfoDtoQuery(query));
+    }
+
     @Get(ChampionList.class)
     public ChampionList getChampionList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -335,28 +343,6 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         return get(ChampionMasteryScore.class, UniqueKeys.forChampionMasteryScoreDtoQuery(query));
-    }
-
-    @Get(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public com.merakianalytics.orianna.types.dto.champion.Champion getChampionStatus(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Number id = (Number)query.get("id");
-        Utilities.checkNotNull(platform, "platform", id, "id");
-
-        return get(com.merakianalytics.orianna.types.dto.champion.Champion.class, UniqueKeys.forChampionStatusDtoQuery(query));
-    }
-
-    @Get(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public com.merakianalytics.orianna.types.dto.champion.ChampionList getChampionStatusList(Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        Utilities.checkNotNull(platform, "platform");
-
-        if(!query.containsKey("freeToPlay")) {
-            query = new HashMap<>(query);
-            query.put("freeToPlay", Boolean.FALSE);
-        }
-
-        return get(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, UniqueKeys.forChampionStatusListDtoQuery(query));
     }
 
     @Get(CurrentGameInfo.class)
@@ -514,6 +500,15 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @SuppressWarnings("unchecked")
+    @GetMany(ChampionInfo.class)
+    public CloseableIterator<ChampionInfo> getManyChampionInfo(final Map<String, Object> query, final PipelineContext context) {
+        final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
+        Utilities.checkNotNull(iter, "platforms");
+
+        return get(ChampionInfo.class, UniqueKeys.forManyChampionInfoDtoQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
     @GetMany(ChampionList.class)
     public CloseableIterator<ChampionList> getManyChampionList(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -568,32 +563,6 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
 
         return get(ChampionMasteryScore.class, UniqueKeys.forManyChampionMasteryScoreDtoQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public CloseableIterator<com.merakianalytics.orianna.types.dto.champion.Champion> getManyChampionStatus(final Map<String, Object> query,
-        final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Iterable<Number> iter = (Iterable<Number>)query.get("ids");
-        Utilities.checkNotNull(platform, "platform", iter, "ids");
-
-        return get(com.merakianalytics.orianna.types.dto.champion.Champion.class, UniqueKeys.forManyChampionStatusDtoQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public CloseableIterator<com.merakianalytics.orianna.types.dto.champion.ChampionList> getManyChampionStatusList(Map<String, Object> query,
-        final PipelineContext context) {
-        final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
-        Utilities.checkNotNull(iter, "platforms");
-
-        if(!query.containsKey("freeToPlay")) {
-            query = new HashMap<>(query);
-            query.put("freeToPlay", Boolean.FALSE);
-        }
-
-        return get(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, UniqueKeys.forManyChampionStatusListDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
@@ -1589,6 +1558,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Champion.class, keys, values);
     }
 
+    @Put(ChampionInfo.class)
+    public void putChampionInfo(final ChampionInfo info, final PipelineContext context) {
+        put(ChampionInfo.class, UniqueKeys.forChampionInfoDto(info), info);
+    }
+
     @Put(ChampionList.class)
     public void putChampionList(final ChampionList list, final PipelineContext context) {
         put(ChampionList.class, UniqueKeys.forChampionListDto(list), list);
@@ -1609,17 +1583,6 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     @Put(ChampionMasteryScore.class)
     public void putChampionMasteryScore(final ChampionMasteryScore score, final PipelineContext context) {
         put(ChampionMasteryScore.class, UniqueKeys.forChampionMasteryScoreDto(score), score);
-    }
-
-    @Put(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public void putChampionStatus(final com.merakianalytics.orianna.types.dto.champion.Champion champion, final PipelineContext context) {
-        put(com.merakianalytics.orianna.types.dto.champion.Champion.class, UniqueKeys.forChampionStatusDto(champion), champion);
-    }
-
-    @Put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public void putChampionStatusList(final com.merakianalytics.orianna.types.dto.champion.ChampionList champions, final PipelineContext context) {
-        put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, UniqueKeys.forChampionStatusListDto(champions), champions);
-        putManyChampionStatus(champions.getChampions(), context);
     }
 
     @Put(CurrentGameInfo.class)
@@ -1707,6 +1670,17 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(Champion.class, keys, values);
     }
 
+    @PutMany(ChampionInfo.class)
+    public void putManyChampionInfo(final Iterable<ChampionInfo> infos, final PipelineContext context) {
+        final ArrayList<Integer> keys = new ArrayList<>();
+        for(final ChampionInfo info : infos) {
+            keys.add(UniqueKeys.forChampionInfoDto(info));
+        }
+        keys.trimToSize();
+
+        put(ChampionInfo.class, keys, infos);
+    }
+
     @PutMany(ChampionList.class)
     public void putManyChampionList(final Iterable<ChampionList> lists, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
@@ -1755,33 +1729,6 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         keys.trimToSize();
 
         put(ChampionMasteryScore.class, keys, scores);
-    }
-
-    @PutMany(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public void putManyChampionStatus(final Iterable<com.merakianalytics.orianna.types.dto.champion.Champion> champions, final PipelineContext context) {
-        final ArrayList<Integer> keys = new ArrayList<>();
-        for(final com.merakianalytics.orianna.types.dto.champion.Champion champion : champions) {
-            keys.add(UniqueKeys.forChampionStatusDto(champion));
-        }
-        keys.trimToSize();
-
-        put(com.merakianalytics.orianna.types.dto.champion.Champion.class, keys, champions);
-    }
-
-    @PutMany(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public void putManyChampionStatusList(final Iterable<com.merakianalytics.orianna.types.dto.champion.ChampionList> lists, final PipelineContext context) {
-        final ArrayList<Integer> keys = new ArrayList<>();
-        for(final com.merakianalytics.orianna.types.dto.champion.ChampionList list : lists) {
-            keys.add(UniqueKeys.forChampionStatusListDto(list));
-        }
-        keys.trimToSize();
-
-        put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, keys, lists);
-        final List<List<com.merakianalytics.orianna.types.dto.champion.Champion>> toStore = new ArrayList<>(keys.size());
-        for(final com.merakianalytics.orianna.types.dto.champion.ChampionList list : lists) {
-            toStore.add(list.getChampions());
-        }
-        putManyChampionStatus(Iterables.concat(toStore), context);
     }
 
     @PutMany(CurrentGameInfo.class)

@@ -48,6 +48,7 @@ import com.merakianalytics.orianna.types.common.OriannaException;
 import com.merakianalytics.orianna.types.common.Platform;
 import com.merakianalytics.orianna.types.common.Queue;
 import com.merakianalytics.orianna.types.common.Tier;
+import com.merakianalytics.orianna.types.dto.champion.ChampionInfo;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMastery;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteryScore;
@@ -94,8 +95,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         private static final Long DEFAULT_ETERNAL_PERIOD = -1L;
         private static final TimeUnit DEFAULT_ETERNAL_UNIT = TimeUnit.DAYS;
         private static final Map<String, ExpirationPeriod> DEFAULT_EXPIRATION_PERIODS = ImmutableMap.<String, ExpirationPeriod> builder()
-            .put(com.merakianalytics.orianna.types.dto.champion.Champion.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
-            .put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
+            .put(ChampionInfo.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(ChampionMastery.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteries.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
@@ -188,8 +188,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     private void ensureIndexes() {
         final Map<Class<?>, String[]> compositeKeys = ImmutableMap.<Class<?>, String[]> builder()
-            .put(com.merakianalytics.orianna.types.dto.champion.Champion.class, new String[] {"platform", "id"})
-            .put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class, new String[] {"platform", "freeToPlay"})
+            .put(ChampionInfo.class, new String[] {"platform"})
             .put(ChampionMastery.class, new String[] {"platform", "playerId", "championId"})
             .put(ChampionMasteries.class, new String[] {"platform", "summonerId"})
             .put(ChampionMasteryScore.class, new String[] {"platform", "summonerId"})
@@ -289,6 +288,16 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         return findFirst(Champion.class, filter);
     }
 
+    @Get(ChampionInfo.class)
+    public ChampionInfo getChampionInfo(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+
+        final Bson filter = eq("platform", platform.getTag());
+
+        return findFirst(ChampionInfo.class, filter);
+    }
+
     @SuppressWarnings("unchecked")
     @Get(ChampionList.class)
     public ChampionList getChampionList(final Map<String, Object> query, final PipelineContext context) {
@@ -358,40 +367,6 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         return findFirst(ChampionMasteryScore.class, and(eq("platform", platform.getTag()), eq("summonerId", summonerId)));
-    }
-
-    @Get(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public com.merakianalytics.orianna.types.dto.champion.Champion getChampionStatus(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Number id = (Number)query.get("id");
-        Utilities.checkNotNull(platform, "platform", id, "id");
-
-        return findFirst(com.merakianalytics.orianna.types.dto.champion.Champion.class, and(eq("platform", platform.getTag()), eq("id", id)));
-    }
-
-    @Get(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public com.merakianalytics.orianna.types.dto.champion.ChampionList getChampionStatusList(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Boolean freeToPlay = query.get("freeToPlay") == null ? Boolean.FALSE : (Boolean)query.get("freeToPlay");
-        Utilities.checkNotNull(platform, "platform");
-
-        final Bson filter = and(eq("platform", platform.getTag()), eq("freeToPlay", freeToPlay));
-
-        final com.merakianalytics.orianna.datastores.mongo.proxies.dto.champion.ChampionList result =
-            findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.champion.ChampionList.class, filter);
-
-        if(result == null) {
-            return null;
-        }
-
-        try(FindResultIterator<com.merakianalytics.orianna.types.dto.champion.Champion> statuses =
-            find(com.merakianalytics.orianna.types.dto.champion.Champion.class, filter)) {
-            final com.merakianalytics.orianna.types.dto.champion.ChampionList list = result.convert((int)statuses.getCount());
-            while(statuses.hasNext()) {
-                list.getChampions().add(statuses.next());
-            }
-            return list;
-        }
     }
 
     @Get(CurrentGameInfo.class)
@@ -552,6 +527,20 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     }
 
     @SuppressWarnings("unchecked")
+    @GetMany(ChampionInfo.class)
+    public CloseableIterator<ChampionInfo> getManyChampionInfo(final Map<String, Object> query, final PipelineContext context) {
+        final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
+        Utilities.checkNotNull(iter, "platforms");
+
+        final List<BsonString> platforms =
+            StreamSupport.stream(iter.spliterator(), false).map((final Platform platform) -> new BsonString(platform.getTag())).collect(Collectors.toList());
+        final Bson filter = in("platform", platforms);
+        final FindQuery find = FindQuery.builder().filter(filter).order(platforms).orderingField("platform").build();
+
+        return find(ChampionInfo.class, find);
+    }
+
+    @SuppressWarnings("unchecked")
     @GetMany(ChampionList.class)
     public CloseableIterator<ChampionList> getManyChampionList(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -642,53 +631,6 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         final FindQuery find = FindQuery.builder().filter(filter).order(summonerIds).orderingField("summonerId").build();
 
         return find(ChampionMasteryScore.class, find);
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public CloseableIterator<com.merakianalytics.orianna.types.dto.champion.Champion> getManyChampionStatus(final Map<String, Object> query,
-        final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Iterable<Number> iter = (Iterable<Number>)query.get("ids");
-        Utilities.checkNotNull(platform, "platform", iter, "ids");
-
-        final List<BsonNumber> ids = numbersToBson(iter);
-        final Bson filter = and(eq("platform", platform.getTag()), in("id", ids));
-        final FindQuery find = FindQuery.builder().filter(filter).order(ids).orderingField("id").build();
-
-        return find(com.merakianalytics.orianna.types.dto.champion.Champion.class, find);
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public CloseableIterator<com.merakianalytics.orianna.types.dto.champion.ChampionList> getManyChampionStatusList(final Map<String, Object> query,
-        final PipelineContext context) {
-        final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
-        final Boolean freeToPlay = query.get("freeToPlay") == null ? Boolean.FALSE : (Boolean)query.get("freeToPlay");
-        Utilities.checkNotNull(iter, "platforms");
-
-        final List<BsonString> platforms =
-            StreamSupport.stream(iter.spliterator(), false).map((final Platform platform) -> new BsonString(platform.getTag())).collect(Collectors.toList());
-        final Bson filter = and(eq("freeToPlay", freeToPlay), in("platform", platforms));
-        final FindQuery find = FindQuery.builder().filter(filter).order(platforms).orderingField("platform").build();
-
-        final FindResultIterator<com.merakianalytics.orianna.datastores.mongo.proxies.dto.champion.ChampionList> results =
-            find(com.merakianalytics.orianna.datastores.mongo.proxies.dto.champion.ChampionList.class, find);
-
-        if(results == null) {
-            return null;
-        }
-
-        return CloseableIterators.transform(results, (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.champion.ChampionList result) -> {
-            try(FindResultIterator<com.merakianalytics.orianna.types.dto.champion.Champion> statuses =
-                find(com.merakianalytics.orianna.types.dto.champion.Champion.class, filter)) {
-                final com.merakianalytics.orianna.types.dto.champion.ChampionList list = result.convert((int)statuses.getCount());
-                while(statuses.hasNext()) {
-                    list.getChampions().add(statuses.next());
-                }
-                return list;
-            }
-        });
     }
 
     @SuppressWarnings("unchecked")
@@ -1900,6 +1842,11 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             eq("locale", champion.getLocale()), eq("includedData", champion.getIncludedData())));
     }
 
+    @Put(ChampionInfo.class)
+    public void putChampionInfom(final ChampionInfo info, final PipelineContext context) {
+        upsert(ChampionInfo.class, info, eq("platform", info.getPlatform()));
+    }
+
     @Put(ChampionList.class)
     public void putChampionList(final ChampionList list, final PipelineContext context) {
         upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ChampionList.class,
@@ -1925,20 +1872,6 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @Put(ChampionMasteryScore.class)
     public void putChampionMasteryScore(final ChampionMasteryScore score, final PipelineContext context) {
         upsert(ChampionMasteryScore.class, score, and(eq("platform", score.getPlatform()), eq("summonerId", score.getSummonerId())));
-    }
-
-    @Put(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public void putChampionStatus(final com.merakianalytics.orianna.types.dto.champion.Champion champion, final PipelineContext context) {
-        upsert(com.merakianalytics.orianna.types.dto.champion.Champion.class, champion,
-            and(eq("platform", champion.getPlatform()), eq("id", champion.getId())));
-    }
-
-    @Put(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public void putChampionStatusList(final com.merakianalytics.orianna.types.dto.champion.ChampionList list, final PipelineContext context) {
-        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.champion.ChampionList.class,
-            com.merakianalytics.orianna.datastores.mongo.proxies.dto.champion.ChampionList.convert(list),
-            and(eq("platform", list.getPlatform()), eq("freeToPlay", list.isFreeToPlay())));
-        putManyChampionStatus(list.getChampions(), context);
     }
 
     @Put(CurrentGameInfo.class)
@@ -1990,6 +1923,13 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         });
     }
 
+    @PutMany(ChampionInfo.class)
+    public void putManyChampionInfo(final Iterable<ChampionInfo> i, final PipelineContext context) {
+        upsert(ChampionInfo.class, i, (final ChampionInfo info) -> {
+            return eq("platform", info.getPlatform());
+        });
+    }
+
     @PutMany(ChampionList.class)
     public void putManyChampionList(final Iterable<ChampionList> l, final PipelineContext context) {
         upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ChampionList.class,
@@ -2026,24 +1966,6 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         upsert(ChampionMasteryScore.class, m, (final ChampionMasteryScore masteries) -> {
             return and(eq("platform", masteries.getPlatform()), eq("summonerId", masteries.getSummonerId()));
         });
-    }
-
-    @PutMany(com.merakianalytics.orianna.types.dto.champion.Champion.class)
-    public void putManyChampionStatus(final Iterable<com.merakianalytics.orianna.types.dto.champion.Champion> s, final PipelineContext context) {
-        upsert(com.merakianalytics.orianna.types.dto.champion.Champion.class, s, (final com.merakianalytics.orianna.types.dto.champion.Champion status) -> {
-            return and(eq("platform", status.getPlatform()), eq("id", status.getId()));
-        });
-    }
-
-    @PutMany(com.merakianalytics.orianna.types.dto.champion.ChampionList.class)
-    public void putManyChampionStatusList(final Iterable<com.merakianalytics.orianna.types.dto.champion.ChampionList> s, final PipelineContext context) {
-        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.champion.ChampionList.class,
-            Iterables.transform(s, com.merakianalytics.orianna.datastores.mongo.proxies.dto.champion.ChampionList::convert),
-            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.champion.ChampionList statuses) -> {
-                return and(eq("platform", statuses.getPlatform()), eq("freeToPlay", statuses.isFreeToPlay()));
-            });
-        putManyChampionStatus(Iterables.concat(StreamSupport.stream(s.spliterator(), false)
-            .map(com.merakianalytics.orianna.types.dto.champion.ChampionList::getChampions).collect(Collectors.toList())), context);
     }
 
     @PutMany(CurrentGameInfo.class)

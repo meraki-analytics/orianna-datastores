@@ -33,8 +33,7 @@ import com.merakianalytics.orianna.types.common.Platform;
 import com.merakianalytics.orianna.types.common.Queue;
 import com.merakianalytics.orianna.types.common.Tier;
 import com.merakianalytics.orianna.types.data.CoreData;
-import com.merakianalytics.orianna.types.data.champion.ChampionStatus;
-import com.merakianalytics.orianna.types.data.champion.ChampionStatuses;
+import com.merakianalytics.orianna.types.data.champion.ChampionRotation;
 import com.merakianalytics.orianna.types.data.championmastery.ChampionMasteries;
 import com.merakianalytics.orianna.types.data.championmastery.ChampionMastery;
 import com.merakianalytics.orianna.types.data.championmastery.ChampionMasteryScore;
@@ -86,8 +85,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         private static final Long DEFAULT_ETERNAL_PERIOD = -1L;
         private static final TimeUnit DEFAULT_ETERNAL_UNIT = TimeUnit.DAYS;
         private static final java.util.Map<String, ExpirationPeriod> DEFAULT_EXPIRATION_PERIODS = ImmutableMap.<String, ExpirationPeriod> builder()
-            .put(ChampionStatus.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
-            .put(ChampionStatuses.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
+            .put(ChampionRotation.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(ChampionMastery.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteries.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
@@ -308,6 +306,14 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         return get(ChampionMasteryScore.class, UniqueKeys.forChampionMasteryScoreDataQuery(query));
     }
 
+    @Get(ChampionRotation.class)
+    public ChampionRotation getChampionRotation(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+
+        return get(ChampionRotation.class, UniqueKeys.forChampionRotationDataQuery(query));
+    }
+
     @Get(Champions.class)
     public Champions getChampions(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -330,28 +336,6 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         }
 
         return get(Champions.class, UniqueKeys.forChampionsDataQuery(query));
-    }
-
-    @Get(ChampionStatus.class)
-    public ChampionStatus getChampionStatus(final java.util.Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Number id = (Number)query.get("id");
-        Utilities.checkNotNull(platform, "platform", id, "id");
-
-        return get(ChampionStatus.class, UniqueKeys.forChampionStatusDataQuery(query));
-    }
-
-    @Get(ChampionStatuses.class)
-    public ChampionStatuses getChampionStatusList(java.util.Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        Utilities.checkNotNull(platform, "platform");
-
-        if(!query.containsKey("freeToPlay")) {
-            query = new HashMap<>(query);
-            query.put("freeToPlay", Boolean.FALSE);
-        }
-
-        return get(ChampionStatuses.class, UniqueKeys.forChampionStatusesDataQuery(query));
     }
 
     @Get(CurrentMatch.class)
@@ -549,6 +533,15 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @SuppressWarnings("unchecked")
+    @GetMany(ChampionRotation.class)
+    public CloseableIterator<ChampionRotation> getManyChampionRotation(final java.util.Map<String, Object> query, final PipelineContext context) {
+        final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
+        Utilities.checkNotNull(iter, "platforms");
+
+        return get(ChampionRotation.class, UniqueKeys.forManyChampionRotationDataQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
     @GetMany(Champions.class)
     public CloseableIterator<Champions> getManyChampions(java.util.Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -572,32 +565,6 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         }
 
         return get(Champions.class, UniqueKeys.forManyChampionsDataQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(ChampionStatus.class)
-    public CloseableIterator<ChampionStatus> getManyChampionStatus(final java.util.Map<String, Object> query,
-        final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Iterable<Number> iter = (Iterable<Number>)query.get("ids");
-        Utilities.checkNotNull(platform, "platform", iter, "ids");
-
-        return get(ChampionStatus.class, UniqueKeys.forManyChampionStatusDataQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(ChampionStatuses.class)
-    public CloseableIterator<ChampionStatuses> getManyChampionStatusList(java.util.Map<String, Object> query,
-        final PipelineContext context) {
-        final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
-        Utilities.checkNotNull(iter, "platforms");
-
-        if(!query.containsKey("freeToPlay")) {
-            query = new HashMap<>(query);
-            query.put("freeToPlay", Boolean.FALSE);
-        }
-
-        return get(ChampionStatuses.class, UniqueKeys.forManyChampionStatusesDataQuery(query));
     }
 
     @SuppressWarnings("unchecked")
@@ -1600,21 +1567,15 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(ChampionMasteryScore.class, UniqueKeys.forChampionMasteryScoreData(score), score);
     }
 
+    @Put(ChampionRotation.class)
+    public void putChampionRotation(final ChampionRotation rotation, final PipelineContext context) {
+        put(ChampionRotation.class, UniqueKeys.forChampionRotationData(rotation), rotation);
+    }
+
     @Put(Champions.class)
     public void putChampions(final Champions list, final PipelineContext context) {
         put(Champions.class, UniqueKeys.forChampionsData(list), list);
         putManyChampion(list, context);
-    }
-
-    @Put(ChampionStatus.class)
-    public void putChampionStatus(final ChampionStatus champion, final PipelineContext context) {
-        put(ChampionStatus.class, UniqueKeys.forChampionStatusData(champion), champion);
-    }
-
-    @Put(ChampionStatuses.class)
-    public void putChampionStatusList(final ChampionStatuses champions, final PipelineContext context) {
-        put(ChampionStatuses.class, UniqueKeys.forChampionStatusesData(champions), champions);
-        putManyChampionStatus(champions, context);
     }
 
     @Put(CurrentMatch.class)
@@ -1741,6 +1702,17 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(ChampionMasteryScore.class, keys, scores);
     }
 
+    @PutMany(ChampionRotation.class)
+    public void putManyChampionRotation(final Iterable<ChampionRotation> rotations, final PipelineContext context) {
+        final ArrayList<Integer> keys = new ArrayList<>();
+        for(final ChampionRotation rotation : rotations) {
+            keys.add(UniqueKeys.forChampionRotationData(rotation));
+        }
+        keys.trimToSize();
+
+        put(ChampionRotation.class, keys, rotations);
+    }
+
     @PutMany(Champions.class)
     public void putManyChampions(final Iterable<Champions> lists, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
@@ -1751,29 +1723,6 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
 
         put(Champions.class, keys, lists);
         putManyChampion(Iterables.concat(lists), context);
-    }
-
-    @PutMany(ChampionStatus.class)
-    public void putManyChampionStatus(final Iterable<ChampionStatus> champions, final PipelineContext context) {
-        final ArrayList<Integer> keys = new ArrayList<>();
-        for(final ChampionStatus champion : champions) {
-            keys.add(UniqueKeys.forChampionStatusData(champion));
-        }
-        keys.trimToSize();
-
-        put(ChampionStatus.class, keys, champions);
-    }
-
-    @PutMany(ChampionStatuses.class)
-    public void putManyChampionStatusList(final Iterable<ChampionStatuses> lists, final PipelineContext context) {
-        final ArrayList<Integer> keys = new ArrayList<>();
-        for(final ChampionStatuses list : lists) {
-            keys.add(UniqueKeys.forChampionStatusesData(list));
-        }
-        keys.trimToSize();
-
-        put(ChampionStatuses.class, keys, lists);
-        putManyChampionStatus(Iterables.concat(lists), context);
     }
 
     @PutMany(CurrentMatch.class)
