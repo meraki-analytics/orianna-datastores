@@ -189,7 +189,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     private void ensureIndexes() {
         final Map<Class<?>, String[]> compositeKeys = ImmutableMap.<Class<?>, String[]> builder()
             .put(ChampionInfo.class, new String[] {"platform"})
-            .put(ChampionMastery.class, new String[] {"platform", "playerId", "championId"})
+            .put(ChampionMastery.class, new String[] {"platform", "summonerId", "championId"})
             .put(ChampionMasteries.class, new String[] {"platform", "summonerId"})
             .put(ChampionMasteryScore.class, new String[] {"platform", "summonerId"})
             .put(LeagueList.class, new String[] {"platform", "leagueId"})
@@ -1886,7 +1886,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @Put(ChampionMastery.class)
     public void putChampionMastery(final ChampionMastery mastery, final PipelineContext context) {
         upsert(ChampionMastery.class, mastery,
-            and(eq("platform", mastery.getPlatform()), eq("playerId", mastery.getPlayerId()), eq("championId", mastery.getChampionId())));
+            and(eq("platform", mastery.getPlatform()), eq("playerId", mastery.getSummonerId()), eq("championId", mastery.getChampionId())));
     }
 
     @Put(ChampionMasteryScore.class)
@@ -1977,7 +1977,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @PutMany(ChampionMastery.class)
     public void putManyChampionMastery(final Iterable<ChampionMastery> m, final PipelineContext context) {
         upsert(ChampionMastery.class, m, (final ChampionMastery mastery) -> {
-            return and(eq("platform", mastery.getPlatform()), eq("playerId", mastery.getPlayerId()), eq("championId", mastery.getChampionId()));
+            return and(eq("platform", mastery.getPlatform()), eq("playerId", mastery.getSummonerId()), eq("championId", mastery.getChampionId()));
         });
     }
 

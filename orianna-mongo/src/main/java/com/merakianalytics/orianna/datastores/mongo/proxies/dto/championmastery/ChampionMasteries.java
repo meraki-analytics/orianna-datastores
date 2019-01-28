@@ -8,8 +8,7 @@ public class ChampionMasteries {
         return proxy;
     }
 
-    private String platform;
-    private long summonerId;
+    private String platform, summonerId;
 
     public com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries convert(final int initialCapacity) {
         final com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries masteries =
@@ -29,7 +28,7 @@ public class ChampionMasteries {
     /**
      * @return the summonerId
      */
-    public long getSummonerId() {
+    public String getSummonerId() {
         return summonerId;
     }
 
@@ -45,7 +44,7 @@ public class ChampionMasteries {
      * @param summonerId
      *        the summonerId to set
      */
-    public void setSummonerId(final long summonerId) {
+    public void setSummonerId(final String summonerId) {
         this.summonerId = summonerId;
     }
 }
