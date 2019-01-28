@@ -201,14 +201,19 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(CurrentGameInfo.class, new String[] {"platformId", "summonerId"})
             .put(FeaturedGames.class, new String[] {"platform"})
             .put(Champion.class, new String[] {"platform", "id", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(Champion.class, new String[] {"platform", "name", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(Champion.class, new String[] {"platform", "key", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(ChampionList.class, new String[] {"platform", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(Item.class, new String[] {"platform", "id", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(Item.class, new String[] {"platform", "name", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(ItemList.class, new String[] {"platform", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(Languages.class, new String[] {"platform"})
             .put(LanguageStrings.class, new String[] {"platform", "version", "locale"})
             .put(MapData.class, new String[] {"platform", "version", "locale"})
             .put(MapDetails.class, new String[] {"platform", "mapId", "version", "locale"})
+            .put(MapDetails.class, new String[] {"platform", "mapName", "version", "locale"})
             .put(Mastery.class, new String[] {"platform", "id", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(Mastery.class, new String[] {"platform", "name", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(MasteryList.class, new String[] {"platform", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(Patch.class, new String[] {"platform", "name"})
             .put(Patches.class, new String[] {"platform"})
@@ -216,14 +221,21 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ProfileIconDetails.class, new String[] {"platform", "id", "version", "locale"})
             .put(Realm.class, new String[] {"platform"})
             .put(ReforgedRune.class, new String[] {"platform", "id", "version", "locale"})
+            .put(ReforgedRune.class, new String[] {"platform", "name", "version", "locale"})
+            .put(ReforgedRune.class, new String[] {"platform", "key", "version", "locale"})
             .put(ReforgedRuneTree.class, new String[] {"platform", "version", "locale"})
             .put(Rune.class, new String[] {"platform", "id", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(Rune.class, new String[] {"platform", "name", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(RuneList.class, new String[] {"platform", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(SummonerSpell.class, new String[] {"platform", "id", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
+            .put(SummonerSpell.class, new String[] {"platform", "name", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(SummonerSpellList.class, new String[] {"platform", "version", "locale", AddOriannaIndexFields.INCLUDED_DATA_HASH_FIELD_NAME})
             .put(Versions.class, new String[] {"platform"})
             .put(ShardStatus.class, new String[] {"platform"})
+            .put(Summoner.class, new String[] {"platform", "puuid"})
+            .put(Summoner.class, new String[] {"platform", "accountId"})
             .put(Summoner.class, new String[] {"platform", "id"})
+            .put(Summoner.class, new String[] {"platform", "name"})
             .put(VerificationString.class, new String[] {"platform", "summonerId"})
             .build();
 
@@ -1206,24 +1218,29 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     public CloseableIterator<Summoner> getManySummoner(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
-        final Iterable<Number> summonerIds = (Iterable<Number>)query.get("ids");
-        final Iterable<Number> accountIds = (Iterable<Number>)query.get("accountIds");
+        final Iterable<String> puuids = (Iterable<String>)query.get("puuids");
+        final Iterable<String> accountIds = (Iterable<String>)query.get("accountIds");
+        final Iterable<String> summonerIds = (Iterable<String>)query.get("ids");
         final Iterable<String> summonerNames = (Iterable<String>)query.get("names");
-        Utilities.checkAtLeastOneNotNull(summonerIds, "ids", accountIds, "accountIds", summonerNames, "names");
+        Utilities.checkAtLeastOneNotNull(puuids, "puuids", accountIds, "accountIds", summonerIds, "ids", summonerNames, "names");
 
         final FindQuery find;
-        if(summonerIds != null) {
-            final List<BsonNumber> order = StreamSupport.stream(summonerIds.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
+        if(puuids != null) {
+            final List<BsonString> order = StreamSupport.stream(puuids.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+            final Bson filter = and(eq("platform", platform.getTag()), in("puuid", order));
+            find = FindQuery.builder().filter(filter).order(order).orderingField("puuid").build();
+        } else if(accountIds != null) {
+            final List<BsonString> order = StreamSupport.stream(accountIds.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
+            final Bson filter = and(eq("platform", platform.getTag()), in("accountId", order));
+            find = FindQuery.builder().filter(filter).order(order).orderingField("accountId").build();
+        } else if(summonerIds != null) {
+            final List<BsonString> order = StreamSupport.stream(summonerIds.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
             final Bson filter = and(eq("platform", platform.getTag()), in("id", order));
             find = FindQuery.builder().filter(filter).order(order).orderingField("id").build();
-        } else if(summonerNames != null) {
+        } else {
             final List<BsonString> order = StreamSupport.stream(summonerNames.spliterator(), false).map(BsonString::new).collect(Collectors.toList());
             final Bson filter = and(eq("platform", platform.getTag()), in("name", order));
             find = FindQuery.builder().filter(filter).order(order).orderingField("name").build();
-        } else {
-            final List<BsonNumber> order = StreamSupport.stream(accountIds.spliterator(), false).map(MongoDBDataStore::toBson).collect(Collectors.toList());
-            final Bson filter = and(eq("platform", platform.getTag()), in("accountId", order));
-            find = FindQuery.builder().filter(filter).order(order).orderingField("accountId").build();
         }
 
         return find(Summoner.class, find);
@@ -1699,18 +1716,21 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     public Summoner getSummoner(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
-        final Number summonerId = (Number)query.get("id");
-        final Number accountId = (Number)query.get("accountId");
+        final String puuid = (String)query.get("puuid");
+        final String accountId = (String)query.get("accountId");
+        final String summonerId = (String)query.get("id");
         final String summonerName = (String)query.get("name");
-        Utilities.checkAtLeastOneNotNull(summonerId, "id", accountId, "accountId", summonerName, "name");
+        Utilities.checkAtLeastOneNotNull(puuid, "puuid", accountId, "accountId", summonerId, "id", summonerName, "name");
 
         final Bson filter;
-        if(summonerId != null) {
-            filter = and(eq("platform", platform.getTag()), eq("id", summonerId));
-        } else if(summonerName != null) {
-            filter = and(eq("platform", platform.getTag()), eq("name", summonerName));
-        } else {
+        if(puuid != null) {
+            filter = and(eq("platform", platform.getTag()), eq("puuid", puuid));
+        } else if(accountId != null) {
             filter = and(eq("platform", platform.getTag()), eq("accountId", accountId));
+        } else if(summonerId != null) {
+            filter = and(eq("platform", platform.getTag()), eq("id", summonerId));
+        } else {
+            filter = and(eq("platform", platform.getTag()), eq("name", summonerName));
         }
 
         return findFirst(Summoner.class, filter);
@@ -2181,7 +2201,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @PutMany(Summoner.class)
     public void putManySummoner(final Iterable<Summoner> s, final PipelineContext context) {
         upsert(Summoner.class, s, (final Summoner summoner) -> {
-            return and(eq("platform", summoner.getPlatform()), eq("id", summoner.getId()));
+            return and(eq("platform", summoner.getPlatform()), eq("puuid", summoner.getPuuid()));
         });
     }
 
@@ -2347,7 +2367,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
 
     @Put(Summoner.class)
     public void putSummoner(final Summoner summoner, final PipelineContext context) {
-        upsert(Summoner.class, summoner, and(eq("platform", summoner.getPlatform()), eq("id", summoner.getId())));
+        upsert(Summoner.class, summoner, and(eq("platform", summoner.getPlatform()), eq("puuid", summoner.getPuuid())));
     }
 
     @Put(SummonerPositions.class)

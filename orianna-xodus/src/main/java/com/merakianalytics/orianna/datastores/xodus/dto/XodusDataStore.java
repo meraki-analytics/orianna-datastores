@@ -960,10 +960,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     public CloseableIterator<Summoner> getManySummoner(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
-        final Iterable<Number> summonerIds = (Iterable<Number>)query.get("ids");
-        final Iterable<Number> accountIds = (Iterable<Number>)query.get("accountIds");
+        final Iterable<String> puuids = (Iterable<String>)query.get("puuids");
+        final Iterable<String> accountIds = (Iterable<String>)query.get("accountIds");
+        final Iterable<String> summonerIds = (Iterable<String>)query.get("ids");
         final Iterable<String> summonerNames = (Iterable<String>)query.get("names");
-        Utilities.checkAtLeastOneNotNull(summonerIds, "ids", accountIds, "accountIds", summonerNames, "names");
+        Utilities.checkAtLeastOneNotNull(puuids, "puuids", accountIds, "accountIds", summonerIds, "ids", summonerNames, "names");
 
         return get(Summoner.class, UniqueKeys.forManySummonerDtoQuery(query));
     }
@@ -1343,10 +1344,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     public Summoner getSummoner(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
         Utilities.checkNotNull(platform, "platform");
-        final Number summonerId = (Number)query.get("id");
-        final Number accountId = (Number)query.get("accountId");
+        final String puuid = (String)query.get("puuid");
+        final String accountId = (String)query.get("accountId");
+        final String summonerId = (String)query.get("id");
         final String summonerName = (String)query.get("name");
-        Utilities.checkAtLeastOneNotNull(summonerId, "id", accountId, "accountId", summonerName, "name");
+        Utilities.checkAtLeastOneNotNull(puuid, "puuid", accountId, "accountId", summonerId, "id", summonerName, "name");
 
         return get(Summoner.class, UniqueKeys.forSummonerDtoQuery(query));
     }
