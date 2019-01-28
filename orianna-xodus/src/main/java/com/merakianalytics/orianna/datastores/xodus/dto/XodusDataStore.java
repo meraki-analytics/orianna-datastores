@@ -39,6 +39,7 @@ import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMastery;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteryScore;
 import com.merakianalytics.orianna.types.dto.league.LeagueList;
+import com.merakianalytics.orianna.types.dto.league.PositionalQueuesList;
 import com.merakianalytics.orianna.types.dto.league.SummonerPositions;
 import com.merakianalytics.orianna.types.dto.match.Match;
 import com.merakianalytics.orianna.types.dto.match.MatchTimeline;
@@ -94,6 +95,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(30L, TimeUnit.MINUTES))
             .put(SummonerPositions.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
+            .put(PositionalQueuesList.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(Match.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             // TODO: Matchlist
             .put(MatchTimeline.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
@@ -811,6 +813,15 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     }
 
     @SuppressWarnings("unchecked")
+    @GetMany(PositionalQueuesList.class)
+    public CloseableIterator<PositionalQueuesList> getManyPositionalQueuesList(final Map<String, Object> query, final PipelineContext context) {
+        final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
+        Utilities.checkNotNull(iter, "platforms");
+
+        return get(PositionalQueuesList.class, UniqueKeys.forManyPositionalQueuesListDtoQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
     @GetMany(ProfileIconData.class)
     public CloseableIterator<ProfileIconData> getManyProfileIconData(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -1185,6 +1196,14 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         Utilities.checkNotNull(platform, "platform");
 
         return get(Patches.class, UniqueKeys.forPatchesDtoQuery(query));
+    }
+
+    @Get(PositionalQueuesList.class)
+    public PositionalQueuesList getPositionalQueuesList(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+
+        return get(PositionalQueuesList.class, UniqueKeys.forPositionalQueuesListDtoQuery(query));
     }
 
     @Get(ProfileIconData.class)
@@ -1941,6 +1960,17 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         putManyPatch(Iterables.concat(toStore), context);
     }
 
+    @PutMany(PositionalQueuesList.class)
+    public void putManyPositionalQueuesList(final Iterable<PositionalQueuesList> queues, final PipelineContext context) {
+        final ArrayList<Integer> keys = new ArrayList<>();
+        for(final PositionalQueuesList queue : queues) {
+            keys.add(UniqueKeys.forPositionalQueuesListDto(queue));
+        }
+        keys.trimToSize();
+
+        put(PositionalQueuesList.class, keys, queues);
+    }
+
     @PutMany(ProfileIconData.class)
     public void putManyProfileIconData(final Iterable<ProfileIconData> icons, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
@@ -2195,6 +2225,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     public void putPatches(final Patches patches, final PipelineContext context) {
         put(Patches.class, UniqueKeys.forPatchesDto(patches), patches);
         putManyPatch(patches.getPatches(), context);
+    }
+
+    @Put(PositionalQueuesList.class)
+    public void putPositionalQueuesList(final PositionalQueuesList queues, final PipelineContext context) {
+        put(PositionalQueuesList.class, UniqueKeys.forPositionalQueuesListDto(queues), queues);
     }
 
     @Put(ProfileIconData.class)

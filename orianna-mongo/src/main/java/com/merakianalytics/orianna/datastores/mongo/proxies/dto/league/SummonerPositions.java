@@ -40,8 +40,7 @@ public class SummonerPositions {
     }
 
     private Set<LeaguePosition> data;
-    private String platform;
-    private long summonerId;
+    private String platform, summonerId;
 
     public com.merakianalytics.orianna.types.dto.league.SummonerPositions convert() {
         final com.merakianalytics.orianna.types.dto.league.SummonerPositions positions =
@@ -74,7 +73,7 @@ public class SummonerPositions {
     /**
      * @return the summonerId
      */
-    public long getSummonerId() {
+    public String getSummonerId() {
         return summonerId;
     }
 
@@ -98,7 +97,7 @@ public class SummonerPositions {
      * @param summonerId
      *        the summonerId to set
      */
-    public void setSummonerId(final long summonerId) {
+    public void setSummonerId(final String summonerId) {
         this.summonerId = summonerId;
     }
 }

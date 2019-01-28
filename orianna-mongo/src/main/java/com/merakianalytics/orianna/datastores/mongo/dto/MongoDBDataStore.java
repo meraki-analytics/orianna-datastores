@@ -53,6 +53,7 @@ import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMastery;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteryScore;
 import com.merakianalytics.orianna.types.dto.league.LeagueList;
+import com.merakianalytics.orianna.types.dto.league.PositionalQueuesList;
 import com.merakianalytics.orianna.types.dto.league.SummonerPositions;
 import com.merakianalytics.orianna.types.dto.match.Match;
 import com.merakianalytics.orianna.types.dto.match.MatchTimeline;
@@ -101,6 +102,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(30L, TimeUnit.MINUTES))
             .put(SummonerPositions.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
+            .put(PositionalQueuesList.class.getCanonicalName(), ExpirationPeriod.create(6L, TimeUnit.HOURS))
             .put(Match.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             // TODO: Matchlist
             .put(MatchTimeline.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
@@ -194,6 +196,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ChampionMasteryScore.class, new String[] {"platform", "summonerId"})
             .put(LeagueList.class, new String[] {"platform", "leagueId"})
             .put(SummonerPositions.class, new String[] {"platform", "summonerId"})
+            .put(PositionalQueuesList.class, new String[] {"platform"})
             .put(Match.class, new String[] {"platformId", "gameId"})
             // TODO: Matchlist
             .put(MatchTimeline.class, new String[] {"platform", "matchId"})
@@ -1002,6 +1005,27 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     }
 
     @SuppressWarnings("unchecked")
+    @GetMany(PositionalQueuesList.class)
+    public CloseableIterator<PositionalQueuesList> getManyPositionalQueuesList(final Map<String, Object> query, final PipelineContext context) {
+        final Iterable<Platform> iter = (Iterable<Platform>)query.get("platforms");
+        Utilities.checkNotNull(iter, "platforms");
+
+        final List<BsonString> platforms =
+            StreamSupport.stream(iter.spliterator(), false).map((final Platform platform) -> new BsonString(platform.getTag())).collect(Collectors.toList());
+        final Bson filter = in("platform", platforms);
+        final FindQuery find = FindQuery.builder().filter(filter).order(platforms).orderingField("platform").build();
+
+        final FindResultIterator<com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.PositionalQueuesList> results =
+            find(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.PositionalQueuesList.class, find);
+
+        if(results == null) {
+            return null;
+        }
+
+        return CloseableIterators.transform(results, com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.PositionalQueuesList::convert);
+    }
+
+    @SuppressWarnings("unchecked")
     @GetMany(ProfileIconData.class)
     public CloseableIterator<ProfileIconData> getManyProfileIconData(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -1540,6 +1564,17 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             data.getPatches().sort(PATCH_COMPARATOR);
             return data;
         }
+    }
+
+    @Get(PositionalQueuesList.class)
+    public PositionalQueuesList getPositionalQueuesList(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        Utilities.checkNotNull(platform, "platform");
+
+        final Bson filter = eq("platform", platform.getTag());
+
+        return Optional.ofNullable(findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.PositionalQueuesList.class, filter))
+            .map(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.PositionalQueuesList::convert).orElse(null);
     }
 
     @Get(ProfileIconData.class)
@@ -2120,6 +2155,15 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             context);
     }
 
+    @PutMany(PositionalQueuesList.class)
+    public void putManyPositionalQueuesList(final Iterable<PositionalQueuesList> q, final PipelineContext context) {
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.PositionalQueuesList.class,
+            Iterables.transform(q, com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.PositionalQueuesList::convert),
+            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.PositionalQueuesList queues) -> {
+                return eq("platform", queues.getPlatform());
+            });
+    }
+
     @PutMany(ProfileIconData.class)
     public void putManyProfileIconData(final Iterable<ProfileIconData> d, final PipelineContext context) {
         upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.ProfileIconData.class,
@@ -2309,6 +2353,12 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches.class,
             com.merakianalytics.orianna.datastores.mongo.proxies.dto.staticdata.Patches.convert(data), eq("platform", data.getPlatform()));
         putManyPatch(data.getPatches(), context);
+    }
+
+    @Put(PositionalQueuesList.class)
+    public void putPositionalQueuesList(final PositionalQueuesList queues, final PipelineContext context) {
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.PositionalQueuesList.class,
+            com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.PositionalQueuesList.convert(queues), eq("platform", queues.getPlatform()));
     }
 
     @Put(ProfileIconData.class)
