@@ -29,9 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.merakianalytics.datapipelines.PipelineContext;
 import com.merakianalytics.datapipelines.iterators.CloseableIterator;
@@ -154,7 +156,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         }
     }
 
-    private static final Set<Tier> LEAGUE_LIST_ENDPOINTS = ImmutableSet.of(Tier.MASTER, Tier.CHALLENGER);
+    private static final Set<Tier> LEAGUE_LIST_ENDPOINTS = ImmutableSet.of(Tier.MASTER, Tier.CHALLENGER, Tier.GRANDMASTER);
     private static final Logger LOGGER = LoggerFactory.getLogger(MongoDBDataStore.class);
 
     private static final Comparator<Patch> PATCH_COMPARATOR = (final Patch first, final Patch second) -> {
@@ -189,7 +191,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     }
 
     private void ensureIndexes() {
-        final Map<Class<?>, String[]> compositeKeys = ImmutableMap.<Class<?>, String[]> builder()
+        final Multimap<Class<?>, String[]> compositeKeys = ImmutableMultimap.<Class<?>, String[]> builder()
             .put(ChampionInfo.class, new String[] {"platform"})
             .put(ChampionMastery.class, new String[] {"platform", "summonerId", "championId"})
             .put(ChampionMasteries.class, new String[] {"platform", "summonerId"})
@@ -245,35 +247,37 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         for(final Class<?> clazz : compositeKeys.keySet()) {
             final MongoCollection<?> collection = getCollection(clazz);
 
-            final String[] keys = compositeKeys.get(clazz);
-            final Bson composite = compoundIndex(Arrays.stream(keys).map((final String key) -> ascending(key)).toArray(Bson[]::new));
-            final IndexModel compositeKey = new IndexModel(composite, new IndexOptions().unique(true));
+            for(final String[] keys : compositeKeys.get(clazz)) {
+                final Bson composite = compoundIndex(Arrays.stream(keys).map((final String key) -> ascending(key)).toArray(Bson[]::new));
+                final IndexModel compositeKey = new IndexModel(composite, new IndexOptions().unique(true));
 
-            List<IndexModel> indexes;
+                List<IndexModel> indexes;
 
-            final ExpirationPeriod period = expirationPeriods.get(clazz.getCanonicalName());
-            if(period != null && period.getPeriod() > 0) {
-                final IndexModel expiration =
-                    new IndexModel(ascending(AddOriannaIndexFields.UPDATED_FIELD_NAME), new IndexOptions().expireAfter(period.getPeriod(), period.getUnit()));
-                indexes = Lists.newArrayList(compositeKey, expiration);
-            } else {
-                indexes = Lists.newArrayList(compositeKey);
-            }
-
-            final CompletableFuture<List<String>> future = new CompletableFuture<>();
-            collection.createIndexes(indexes, (final List<String> results, final Throwable exception) -> {
-                if(exception != null) {
-                    future.completeExceptionally(exception);
+                final ExpirationPeriod period = expirationPeriods.get(clazz.getCanonicalName());
+                if(period != null && period.getPeriod() > 0) {
+                    final IndexModel expiration =
+                        new IndexModel(ascending(AddOriannaIndexFields.UPDATED_FIELD_NAME),
+                            new IndexOptions().expireAfter(period.getPeriod(), period.getUnit()));
+                    indexes = Lists.newArrayList(compositeKey, expiration);
                 } else {
-                    future.complete(results);
+                    indexes = Lists.newArrayList(compositeKey);
                 }
-            });
 
-            try {
-                future.get();
-            } catch(InterruptedException | ExecutionException e) {
-                LOGGER.error("Error creating MongoDB indexes!", e);
-                throw new OriannaException("Error creating MongoDB indexes!", e);
+                final CompletableFuture<List<String>> future = new CompletableFuture<>();
+                collection.createIndexes(indexes, (final List<String> results, final Throwable exception) -> {
+                    if(exception != null) {
+                        future.completeExceptionally(exception);
+                    } else {
+                        future.complete(results);
+                    }
+                });
+
+                try {
+                    future.get();
+                } catch(InterruptedException | ExecutionException e) {
+                    LOGGER.error("Error creating MongoDB indexes!", e);
+                    throw new OriannaException("Error creating MongoDB indexes!", e);
+                }
             }
         }
     }
@@ -345,7 +349,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @Get(ChampionMasteries.class)
     public ChampionMasteries getChampionMasteries(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         final com.merakianalytics.orianna.datastores.mongo.proxies.dto.championmastery.ChampionMasteries result =
@@ -356,7 +360,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             return null;
         }
 
-        try(FindResultIterator<ChampionMastery> masteries = find(ChampionMastery.class, and(eq("platform", platform.getTag()), eq("playerId", summonerId)))) {
+        try(FindResultIterator<ChampionMastery> masteries = find(ChampionMastery.class, and(eq("platform", platform.getTag()), eq("summonerId", summonerId)))) {
             final ChampionMasteries list = result.convert((int)masteries.getCount());
             while(masteries.hasNext()) {
                 list.add(masteries.next());
@@ -368,17 +372,17 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @Get(ChampionMastery.class)
     public ChampionMastery getChampionMastery(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         final Number championId = (Number)query.get("championId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId", championId, "championId");
 
-        return findFirst(ChampionMastery.class, and(eq("platform", platform.getTag()), eq("playerId", summonerId), eq("championId", championId)));
+        return findFirst(ChampionMastery.class, and(eq("platform", platform.getTag()), eq("summonerId", summonerId), eq("championId", championId)));
     }
 
     @Get(ChampionMasteryScore.class)
     public ChampionMasteryScore getChampionMasteryScore(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         return findFirst(ChampionMasteryScore.class, and(eq("platform", platform.getTag()), eq("summonerId", summonerId)));
@@ -387,7 +391,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @Get(CurrentGameInfo.class)
     public CurrentGameInfo getCurrentGameInfo(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         return findFirst(CurrentGameInfo.class, and(eq("platformId", platform.getTag()), eq("summonerId", summonerId)));
@@ -623,12 +627,12 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @GetMany(ChampionMastery.class)
     public CloseableIterator<ChampionMastery> getManyChampionMastery(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         final Iterable<Number> iter = (Iterable<Number>)query.get("championIds");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId", iter, "championIds");
 
         final List<BsonNumber> championIds = numbersToBson(iter);
-        final Bson filter = and(eq("platform", platform), eq("playerId", summonerId), in("championId", championIds));
+        final Bson filter = and(eq("platform", platform), eq("summonerId", summonerId), in("championId", championIds));
         final FindQuery find = FindQuery.builder().filter(filter).order(championIds).orderingField("championId").build();
 
         return find(ChampionMastery.class, find);
@@ -1774,7 +1778,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @Get(SummonerPositions.class)
     public SummonerPositions getSummonerPositions(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         final Bson filter = and(eq("platform", platform.getTag()), eq("summonerId", summonerId));
@@ -1848,7 +1852,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @Get(VerificationString.class)
     public VerificationString getVerificationString(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         return findFirst(VerificationString.class, and(eq("platform", platform.getTag()), eq("summonerId", summonerId)));
@@ -1921,7 +1925,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @Put(ChampionMastery.class)
     public void putChampionMastery(final ChampionMastery mastery, final PipelineContext context) {
         upsert(ChampionMastery.class, mastery,
-            and(eq("platform", mastery.getPlatform()), eq("playerId", mastery.getSummonerId()), eq("championId", mastery.getChampionId())));
+            and(eq("platform", mastery.getPlatform()), eq("summonerId", mastery.getSummonerId()), eq("championId", mastery.getChampionId())));
     }
 
     @Put(ChampionMasteryScore.class)
@@ -2012,7 +2016,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @PutMany(ChampionMastery.class)
     public void putManyChampionMastery(final Iterable<ChampionMastery> m, final PipelineContext context) {
         upsert(ChampionMastery.class, m, (final ChampionMastery mastery) -> {
-            return and(eq("platform", mastery.getPlatform()), eq("playerId", mastery.getSummonerId()), eq("championId", mastery.getChampionId()));
+            return and(eq("platform", mastery.getPlatform()), eq("summonerId", mastery.getSummonerId()), eq("championId", mastery.getChampionId()));
         });
     }
 

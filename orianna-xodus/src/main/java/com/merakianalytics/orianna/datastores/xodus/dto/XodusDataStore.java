@@ -147,7 +147,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         }
     }
 
-    private static final Set<Tier> LEAGUE_LIST_ENDPOINTS = ImmutableSet.of(Tier.MASTER, Tier.CHALLENGER);
+    private static final Set<Tier> LEAGUE_LIST_ENDPOINTS = ImmutableSet.of(Tier.MASTER, Tier.CHALLENGER, Tier.GRANDMASTER);
     private static final Logger LOGGER = LoggerFactory.getLogger(XodusDataStore.class);
     private static final StoreConfig STORE_CONFIG = StoreConfig.WITHOUT_DUPLICATES_WITH_PREFIXING;
 
@@ -322,7 +322,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     @Get(ChampionMasteries.class)
     public ChampionMasteries getChampionMasteries(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         return get(ChampionMasteries.class, UniqueKeys.forChampionMasteriesDtoQuery(query));
@@ -331,7 +331,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     @Get(ChampionMastery.class)
     public ChampionMastery getChampionMastery(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         final Number championId = (Number)query.get("championId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId", championId, "championId");
 
@@ -341,7 +341,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     @Get(ChampionMasteryScore.class)
     public ChampionMasteryScore getChampionMasteryScore(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         return get(ChampionMasteryScore.class, UniqueKeys.forChampionMasteryScoreDtoQuery(query));
@@ -350,7 +350,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     @Get(CurrentGameInfo.class)
     public CurrentGameInfo getCurrentGameInfo(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         return get(CurrentGameInfo.class, UniqueKeys.forCurrentGameInfoDtoQuery(query));
@@ -550,7 +550,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     @GetMany(ChampionMastery.class)
     public CloseableIterator<ChampionMastery> getManyChampionMastery(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         final Iterable<Number> iter = (Iterable<Number>)query.get("championIds");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId", iter, "championIds");
 
@@ -1375,7 +1375,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     @Get(SummonerPositions.class)
     public SummonerPositions getSummonerPositions(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         return get(SummonerPositions.class, UniqueKeys.forSummonerPositionsDtoQuery(query));
@@ -1444,7 +1444,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
     @Get(VerificationString.class)
     public VerificationString getVerificationString(final Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
-        final Number summonerId = (Number)query.get("summonerId");
+        final String summonerId = (String)query.get("summonerId");
         Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
 
         return get(VerificationString.class, UniqueKeys.forVerificationStringDtoQuery(query));
