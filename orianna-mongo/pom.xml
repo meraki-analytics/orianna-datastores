@@ -53,9 +53,9 @@
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
+					<encoding>${project.build.sourceEncoding}</encoding>
 					<source>1.8</source>
 					<target>1.8</target>
-					<encoding>${project.build.sourceEncoding}</encoding>
 				</configuration>
 			</plugin>
 		</plugins>
