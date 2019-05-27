@@ -39,7 +39,7 @@ import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMastery;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteryScore;
 import com.merakianalytics.orianna.types.dto.league.LeagueList;
-import com.merakianalytics.orianna.types.dto.league.SummonerPositions;
+import com.merakianalytics.orianna.types.dto.league.LeaguePositions;
 import com.merakianalytics.orianna.types.dto.match.Match;
 import com.merakianalytics.orianna.types.dto.match.MatchTimeline;
 import com.merakianalytics.orianna.types.dto.match.TournamentMatches;
@@ -93,7 +93,7 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
             .put(ChampionMasteries.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(30L, TimeUnit.MINUTES))
-            .put(SummonerPositions.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
+            .put(LeaguePositions.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(Match.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             // TODO: Matchlist
             .put(MatchTimeline.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
@@ -470,6 +470,15 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         return get(LeagueList.class, UniqueKeys.forLeagueListDtoQuery(query));
     }
 
+    @Get(LeaguePositions.class)
+    public LeaguePositions getLeaguePositions(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final String summonerId = (String)query.get("summonerId");
+        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
+
+        return get(LeaguePositions.class, UniqueKeys.forLeaguePositionsDtoQuery(query));
+    }
+
     @SuppressWarnings("unchecked")
     @GetMany(Champion.class)
     public CloseableIterator<Champion> getManyChampion(Map<String, Object> query, final PipelineContext context) {
@@ -680,6 +689,16 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         }
 
         return get(LeagueList.class, UniqueKeys.forManyLeagueListDtoQuery(query));
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(LeaguePositions.class)
+    public CloseableIterator<LeaguePositions> getManyLeaguePositions(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
+        Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
+
+        return get(LeaguePositions.class, UniqueKeys.forManyLeaguePositionsDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
@@ -967,16 +986,6 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         Utilities.checkAtLeastOneNotNull(puuids, "puuids", accountIds, "accountIds", summonerIds, "ids", summonerNames, "names");
 
         return get(Summoner.class, UniqueKeys.forManySummonerDtoQuery(query));
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(SummonerPositions.class)
-    public CloseableIterator<SummonerPositions> getManySummonerPositions(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
-        Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
-
-        return get(SummonerPositions.class, UniqueKeys.forManySummonerPositionsDtoQuery(query));
     }
 
     @SuppressWarnings("unchecked")
@@ -1353,15 +1362,6 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         return get(Summoner.class, UniqueKeys.forSummonerDtoQuery(query));
     }
 
-    @Get(SummonerPositions.class)
-    public SummonerPositions getSummonerPositions(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final String summonerId = (String)query.get("summonerId");
-        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
-
-        return get(SummonerPositions.class, UniqueKeys.forSummonerPositionsDtoQuery(query));
-    }
-
     @Get(SummonerSpell.class)
     public SummonerSpell getSummonerSpell(Map<String, Object> query, final PipelineContext context) {
         final Platform platform = (Platform)query.get("platform");
@@ -1640,6 +1640,11 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(LeagueList.class, keyList, valueList);
     }
 
+    @Put(LeaguePositions.class)
+    public void putLeaguePositions(final LeaguePositions positions, final PipelineContext context) {
+        put(LeaguePositions.class, UniqueKeys.forLeaguePositionsDto(positions), positions);
+    }
+
     @PutMany(Summoner.class)
     public void putManSummoner(final Iterable<Summoner> summoners, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
@@ -1823,6 +1828,17 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         values.trimToSize();
 
         put(LeagueList.class, keys, values);
+    }
+
+    @PutMany(LeaguePositions.class)
+    public void putManyLeaguePositions(final Iterable<LeaguePositions> positions, final PipelineContext context) {
+        final ArrayList<Integer> keys = new ArrayList<>();
+        for(final LeaguePositions position : positions) {
+            keys.add(UniqueKeys.forLeaguePositionsDto(position));
+        }
+        keys.trimToSize();
+
+        put(LeaguePositions.class, keys, positions);
     }
 
     @PutMany(MapData.class)
@@ -2060,17 +2076,6 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         put(ShardStatus.class, keys, statuses);
     }
 
-    @PutMany(SummonerPositions.class)
-    public void putManySummonerPositions(final Iterable<SummonerPositions> positions, final PipelineContext context) {
-        final ArrayList<Integer> keys = new ArrayList<>();
-        for(final SummonerPositions position : positions) {
-            keys.add(UniqueKeys.forSummonerPositionsDto(position));
-        }
-        keys.trimToSize();
-
-        put(SummonerPositions.class, keys, positions);
-    }
-
     @PutMany(SummonerSpell.class)
     public void putManySummonerSpell(final Iterable<SummonerSpell> summonerSpells, final PipelineContext context) {
         final ArrayList<Integer> keys = new ArrayList<>();
@@ -2278,11 +2283,6 @@ public class XodusDataStore extends com.merakianalytics.orianna.datastores.xodus
         values.trimToSize();
 
         put(Summoner.class, keys, values);
-    }
-
-    @Put(SummonerPositions.class)
-    public void putSummonerPositions(final SummonerPositions positions, final PipelineContext context) {
-        put(SummonerPositions.class, UniqueKeys.forSummonerPositionsDto(positions), positions);
     }
 
     @Put(SummonerSpell.class)

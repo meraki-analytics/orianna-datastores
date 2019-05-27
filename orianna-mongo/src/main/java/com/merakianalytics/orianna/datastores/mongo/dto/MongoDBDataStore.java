@@ -55,7 +55,7 @@ import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteries;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMastery;
 import com.merakianalytics.orianna.types.dto.championmastery.ChampionMasteryScore;
 import com.merakianalytics.orianna.types.dto.league.LeagueList;
-import com.merakianalytics.orianna.types.dto.league.SummonerPositions;
+import com.merakianalytics.orianna.types.dto.league.LeaguePositions;
 import com.merakianalytics.orianna.types.dto.match.Match;
 import com.merakianalytics.orianna.types.dto.match.MatchTimeline;
 import com.merakianalytics.orianna.types.dto.match.TournamentMatches;
@@ -102,7 +102,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ChampionMasteries.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(ChampionMasteryScore.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(LeagueList.class.getCanonicalName(), ExpirationPeriod.create(30L, TimeUnit.MINUTES))
-            .put(SummonerPositions.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
+            .put(LeaguePositions.class.getCanonicalName(), ExpirationPeriod.create(2L, TimeUnit.HOURS))
             .put(Match.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
             // TODO: Matchlist
             .put(MatchTimeline.class.getCanonicalName(), ExpirationPeriod.create(DEFAULT_ETERNAL_PERIOD, DEFAULT_ETERNAL_UNIT))
@@ -195,7 +195,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             .put(ChampionMasteries.class, new String[] {"platform", "summonerId"})
             .put(ChampionMasteryScore.class, new String[] {"platform", "summonerId"})
             .put(LeagueList.class, new String[] {"platform", "leagueId"})
-            .put(SummonerPositions.class, new String[] {"platform", "summonerId"})
+            .put(LeaguePositions.class, new String[] {"platform", "summonerId"})
             .put(Match.class, new String[] {"platformId", "gameId"})
             // TODO: Matchlist
             .put(MatchTimeline.class, new String[] {"platform", "matchId"})
@@ -508,6 +508,18 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         return findFirst(LeagueList.class, filter);
     }
 
+    @Get(LeaguePositions.class)
+    public LeaguePositions getLeaguePositions(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final String summonerId = (String)query.get("summonerId");
+        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
+
+        final Bson filter = and(eq("platform", platform.getTag()), eq("summonerId", summonerId));
+
+        return Optional.ofNullable(findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.LeaguePositions.class, filter))
+            .map(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.LeaguePositions::convert).orElse(null);
+    }
+
     @SuppressWarnings("unchecked")
     @GetMany(Champion.class)
     public CloseableIterator<Champion> getManyChampion(final Map<String, Object> query, final PipelineContext context) {
@@ -807,6 +819,27 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         }
 
         return find(LeagueList.class, find);
+    }
+
+    @SuppressWarnings("unchecked")
+    @GetMany(LeaguePositions.class)
+    public CloseableIterator<LeaguePositions> getManyLeaguePositions(final Map<String, Object> query, final PipelineContext context) {
+        final Platform platform = (Platform)query.get("platform");
+        final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
+        Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
+
+        final List<BsonNumber> summonerIds = numbersToBson(iter);
+        final Bson filter = and(eq("platform", platform), in("summonerId", summonerIds));
+        final FindQuery find = FindQuery.builder().filter(filter).order(summonerIds).orderingField("summonerId").build();
+
+        final FindResultIterator<com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.LeaguePositions> results =
+            find(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.LeaguePositions.class, find);
+
+        if(results == null) {
+            return null;
+        }
+
+        return CloseableIterators.transform(results, com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.LeaguePositions::convert);
     }
 
     @SuppressWarnings("unchecked")
@@ -1248,27 +1281,6 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         }
 
         return find(Summoner.class, find);
-    }
-
-    @SuppressWarnings("unchecked")
-    @GetMany(SummonerPositions.class)
-    public CloseableIterator<SummonerPositions> getManySummonerPositions(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final Iterable<Number> iter = (Iterable<Number>)query.get("summonerIds");
-        Utilities.checkNotNull(platform, "platform", iter, "summonerIds");
-
-        final List<BsonNumber> summonerIds = numbersToBson(iter);
-        final Bson filter = and(eq("platform", platform), in("summonerId", summonerIds));
-        final FindQuery find = FindQuery.builder().filter(filter).order(summonerIds).orderingField("summonerId").build();
-
-        final FindResultIterator<com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions> results =
-            find(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.class, find);
-
-        if(results == null) {
-            return null;
-        }
-
-        return CloseableIterators.transform(results, com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions::convert);
     }
 
     @SuppressWarnings("unchecked")
@@ -1740,18 +1752,6 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         return findFirst(Summoner.class, filter);
     }
 
-    @Get(SummonerPositions.class)
-    public SummonerPositions getSummonerPositions(final Map<String, Object> query, final PipelineContext context) {
-        final Platform platform = (Platform)query.get("platform");
-        final String summonerId = (String)query.get("summonerId");
-        Utilities.checkNotNull(platform, "platform", summonerId, "summonerId");
-
-        final Bson filter = and(eq("platform", platform.getTag()), eq("summonerId", summonerId));
-
-        return Optional.ofNullable(findFirst(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.class, filter))
-            .map(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions::convert).orElse(null);
-    }
-
     @SuppressWarnings("unchecked")
     @Get(SummonerSpell.class)
     public SummonerSpell getSummonerSpell(final Map<String, Object> query, final PipelineContext context) {
@@ -1939,6 +1939,13 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         upsert(LeagueList.class, league, and(eq("platform", league.getPlatform()), eq("leagueId", league.getLeagueId())));
     }
 
+    @Put(LeaguePositions.class)
+    public void putLeaguePositions(final LeaguePositions positions, final PipelineContext context) {
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.LeaguePositions.class,
+            com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.LeaguePositions.convert(positions),
+            and(eq("platform", positions.getPlatform()), eq("summonerId", positions.getSummonerId())));
+    }
+
     @PutMany(Champion.class)
     public void putManyChampion(final Iterable<Champion> c, final PipelineContext context) {
         upsert(Champion.class, c, (final Champion champion) -> {
@@ -2048,6 +2055,15 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         upsert(LeagueList.class, l, (final LeagueList list) -> {
             return and(eq("platform", list.getPlatform()), eq("leagueId", list.getLeagueId()));
         });
+    }
+
+    @PutMany(LeaguePositions.class)
+    public void putManyLeaguePositions(final Iterable<LeaguePositions> p, final PipelineContext context) {
+        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.LeaguePositions.class,
+            Iterables.transform(p, com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.LeaguePositions::convert),
+            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.LeaguePositions positions) -> {
+                return and(eq("platform", positions.getPlatform()), eq("summonerId", positions.getSummonerId()));
+            });
     }
 
     @PutMany(MapData.class)
@@ -2209,15 +2225,6 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         });
     }
 
-    @PutMany(SummonerPositions.class)
-    public void putManySummonerPositions(final Iterable<SummonerPositions> p, final PipelineContext context) {
-        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.class,
-            Iterables.transform(p, com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions::convert),
-            (final com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions positions) -> {
-                return and(eq("platform", positions.getPlatform()), eq("summonerId", positions.getSummonerId()));
-            });
-    }
-
     @PutMany(SummonerSpell.class)
     public void putManySummonerSpell(final Iterable<SummonerSpell> s, final PipelineContext context) {
         upsert(SummonerSpell.class, s, (final SummonerSpell spell) -> {
@@ -2372,13 +2379,6 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
     @Put(Summoner.class)
     public void putSummoner(final Summoner summoner, final PipelineContext context) {
         upsert(Summoner.class, summoner, and(eq("platform", summoner.getPlatform()), eq("puuid", summoner.getPuuid())));
-    }
-
-    @Put(SummonerPositions.class)
-    public void putSummonerPositions(final SummonerPositions positions, final PipelineContext context) {
-        upsert(com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.class,
-            com.merakianalytics.orianna.datastores.mongo.proxies.dto.league.SummonerPositions.convert(positions),
-            and(eq("platform", positions.getPlatform()), eq("summonerId", positions.getSummonerId())));
     }
 
     @Put(SummonerSpell.class)

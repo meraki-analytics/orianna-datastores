@@ -10,20 +10,20 @@ import com.merakianalytics.orianna.types.common.OriannaException;
 import com.merakianalytics.orianna.types.dto.DataObject;
 import com.merakianalytics.orianna.types.dto.league.LeaguePosition;
 
-public class SummonerPositions {
+public class LeaguePositions {
     private static final Field DATA = getDataField();
-    private static Logger LOGGER = LoggerFactory.getLogger(SummonerPositions.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(LeaguePositions.class);
 
     @SuppressWarnings("unchecked")
-    public static SummonerPositions convert(final com.merakianalytics.orianna.types.dto.league.SummonerPositions positions) {
-        final SummonerPositions proxy = new SummonerPositions();
+    public static LeaguePositions convert(final com.merakianalytics.orianna.types.dto.league.LeaguePositions positions) {
+        final LeaguePositions proxy = new LeaguePositions();
         proxy.setPlatform(positions.getPlatform());
         proxy.setSummonerId(positions.getSummonerId());
         try {
             proxy.setData((Set<LeaguePosition>)DATA.get(positions));
         } catch(IllegalArgumentException | IllegalAccessException e) {
-            LOGGER.error("Failed to get data from SummonerPositions! Report this to the orianna team!", e);
-            throw new OriannaException("Failed to get data from SummonerPositions! Report this to the orianna team!", e);
+            LOGGER.error("Failed to get data from LeaguePositions! Report this to the orianna team!", e);
+            throw new OriannaException("Failed to get data from LeaguePositions! Report this to the orianna team!", e);
         }
         return proxy;
     }
@@ -42,16 +42,16 @@ public class SummonerPositions {
     private Set<LeaguePosition> data;
     private String platform, summonerId;
 
-    public com.merakianalytics.orianna.types.dto.league.SummonerPositions convert() {
-        final com.merakianalytics.orianna.types.dto.league.SummonerPositions positions =
-            new com.merakianalytics.orianna.types.dto.league.SummonerPositions();
+    public com.merakianalytics.orianna.types.dto.league.LeaguePositions convert() {
+        final com.merakianalytics.orianna.types.dto.league.LeaguePositions positions =
+            new com.merakianalytics.orianna.types.dto.league.LeaguePositions();
         positions.setPlatform(platform);
         positions.setSummonerId(summonerId);
         try {
             DATA.set(positions, data);
         } catch(IllegalArgumentException | IllegalAccessException e) {
-            LOGGER.error("Failed to set data on SummonerPositions! Report this to the orianna team!", e);
-            throw new OriannaException("Failed to set data on SummonerPositions! Report this to the orianna team!", e);
+            LOGGER.error("Failed to set data on LeaguePositions! Report this to the orianna team!", e);
+            throw new OriannaException("Failed to set data on LeaguePositions! Report this to the orianna team!", e);
         }
         return positions;
     }
