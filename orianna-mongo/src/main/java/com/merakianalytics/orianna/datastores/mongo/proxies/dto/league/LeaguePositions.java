@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.merakianalytics.orianna.types.common.OriannaException;
 import com.merakianalytics.orianna.types.dto.DataObject;
-import com.merakianalytics.orianna.types.dto.league.LeaguePosition;
+import com.merakianalytics.orianna.types.dto.league.LeagueEntry;
 
 public class LeaguePositions {
     private static final Field DATA = getDataField();
@@ -20,7 +20,7 @@ public class LeaguePositions {
         proxy.setPlatform(positions.getPlatform());
         proxy.setSummonerId(positions.getSummonerId());
         try {
-            proxy.setData((Set<LeaguePosition>)DATA.get(positions));
+            proxy.setData((Set<LeagueEntry>)DATA.get(positions));
         } catch(IllegalArgumentException | IllegalAccessException e) {
             LOGGER.error("Failed to get data from LeaguePositions! Report this to the orianna team!", e);
             throw new OriannaException("Failed to get data from LeaguePositions! Report this to the orianna team!", e);
@@ -39,7 +39,7 @@ public class LeaguePositions {
         }
     }
 
-    private Set<LeaguePosition> data;
+    private Set<LeagueEntry> data;
     private String platform, summonerId;
 
     public com.merakianalytics.orianna.types.dto.league.LeaguePositions convert() {
@@ -59,7 +59,7 @@ public class LeaguePositions {
     /**
      * @return the data
      */
-    public Set<LeaguePosition> getData() {
+    public Set<LeagueEntry> getData() {
         return data;
     }
 
@@ -81,7 +81,7 @@ public class LeaguePositions {
      * @param data
      *        the data to set
      */
-    public void setData(final Set<LeaguePosition> data) {
+    public void setData(final Set<LeagueEntry> data) {
         this.data = data;
     }
 
