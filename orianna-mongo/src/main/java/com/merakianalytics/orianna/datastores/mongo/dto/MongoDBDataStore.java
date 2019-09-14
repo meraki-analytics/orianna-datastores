@@ -502,7 +502,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
         if(leagueId != null) {
             filter = and(eq("platform", platform.getTag()), eq("leagueId", leagueId));
         } else {
-            filter = and(eq("platform", platform.getTag()), eq("tier", tier.name()), eq("queue", queue.name()));
+            filter = and(eq("platform", platform.getTag()), eq("tier", tier.name()), eq("queue", queue.getTag()));
         }
 
         return findFirst(LeagueList.class, filter);
@@ -813,7 +813,7 @@ public class MongoDBDataStore extends com.merakianalytics.orianna.datastores.mon
             find = FindQuery.builder().filter(filter).order(ids).orderingField("leagueId").build();
         } else {
             final List<BsonString> ids =
-                StreamSupport.stream(queues.spliterator(), false).map((final Queue queue) -> new BsonString(queue.name())).collect(Collectors.toList());
+                StreamSupport.stream(queues.spliterator(), false).map((final Queue queue) -> new BsonString(queue.getTag())).collect(Collectors.toList());
             final Bson filter = and(eq("platform", platform), eq("tier", tier.name()), in("queue", ids));
             find = FindQuery.builder().filter(filter).order(ids).orderingField("queue").build();
         }
