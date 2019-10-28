@@ -1010,7 +1010,7 @@ public abstract class MongoDBDataStore extends AbstractDataStore implements Auto
     protected <T> FindResultIterator<T> find(final Class<T> clazz, final Bson filter) {
         final MongoCollection<T> collection = getCollection(clazz);
         final CompletableFuture<FindResultIterator<T>> future = new CompletableFuture<>();
-        collection.countDocuments((final Long count, final Throwable exception) -> {
+        collection.countDocuments(filter, (final Long count, final Throwable exception) -> {
             if(exception != null) {
                 future.completeExceptionally(exception);
             } else if(0L == count) {
